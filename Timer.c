@@ -50,6 +50,18 @@ void TimerInit(void)
 
 /******************************************************************************/
 /**
+* void TimerDeInit(void)
+* @brief Disable timer IRQ.
+*
+*******************************************************************************/
+void TimerDeInit(void)
+{
+    NVIC->ICER[0] |= (1 << TIM2_IRQn);
+    TIM2->CR1 = 0;
+}
+
+/******************************************************************************/
+/**
 * void TimerStartTimeout(void)
 * @brief Start the timeout counter.
 *

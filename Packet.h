@@ -8,6 +8,7 @@
 #define PACKET_H
 /* ***************** Header / include files ( #include ) **********************/
 /* *************** Constant / macro definitions ( #define ) *******************/
+#define BLOCK_SIZE 64
 /* ********************* Type definitions ( typedef ) *************************/
 /**
 * @struct tDATA_PACKET
@@ -15,9 +16,9 @@
 */
 typedef struct
 {
-    uint8_t  u8Data[64];  /**< Data block     */
-    uint16_t u16SeqCnt;  /**< Sequence count */
-    uint16_t u16CRC;     /**< Two-byte CRC   */
+    uint8_t  u8Data[BLOCK_SIZE];  /**< Data block     */
+    uint16_t u16SeqCnt;           /**< Sequence count */
+    uint16_t u16CRC;              /**< Two-byte CRC   */
 }tDATA_PACKET;
 
 /**

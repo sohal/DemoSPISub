@@ -9,13 +9,11 @@
 #include "Flash.h"
 #include "Gpio.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
+#define PAGE_SIZE_BYTES 0x400
 
 /* ********************* Type definitions ( typedef ) *************************/
 
 /* *********************** Global data definitions ****************************/
-#define FLASH_PROGRAM_START_ADDRESS 0x08001000
-#define BLOCK_SIZE 64
-
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
 static uint8_t IsErased;
@@ -42,21 +40,22 @@ void FlashInit(void)
 
 /******************************************************************************/
 /**
-* uint8_t FlashWrite(uint8_t* buf)
+* uint8_t FlashWrite(uint8_t* buf, uint16_t size)
 * @brief Write to Flash and lock it afterwards.
 *
 * @param[in] buf pointer to data to be written to flash
+* @param[in] size number of bytes
 * @returns   1 if successful
 *            or
 *            0 if an error occurs.
 *
 *******************************************************************************/
-uint8_t FlashWrite(uint8_t* buf)
+uint8_t FlashWrite(uint8_t* buf, uint16_t size)
 {
     uint16_t i = 0;
     // Program Flash Page
     FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
-    while(i < BLOCK_SIZE) 
+    while(i < size) 
     {
         FLASH->CR |= FLASH_CR_PG;
         *ar++ = (uint16_t)(buf[i+1] << 8) | buf[i];
@@ -74,19 +73,20 @@ uint8_t FlashWrite(uint8_t* buf)
 
 /******************************************************************************/
 /**
-* uint8_t FlashVerify(uint8_t* buf)
+* uint8_t FlashVerify(uint8_t* buf, uint16_t size)
 * @brief Verify code in Flash.
 *
 * @param[in] buf pointer to data to be compared with flash
+* @param[in] size number of bytes
 * @returns   1 if matches
 *            or
 *            0 if doesn't match.
 *
 *******************************************************************************/
-uint8_t FlashVerify(uint8_t* buf)
+uint8_t FlashVerify(uint8_t* buf, uint16_t size)
 {
     uint16_t i = 0;
-    while(i < BLOCK_SIZE) 
+    while(i < size) 
     {
         if(*vr++ != ((uint16_t)(buf[i+1] << 8) | buf[i]))
         {
@@ -100,7 +100,7 @@ uint8_t FlashVerify(uint8_t* buf)
 /******************************************************************************/
 /**
 * void FlashErase(void)
-* @brief Erase Flash from 0x08000000 to 0x08007000 by page, each page is 1K.
+* @brief Erase Flash from 0x08001000 to 0x08008000 by page, each page is 1K.
 *
 *******************************************************************************/
 void FlashErase(void)
@@ -124,7 +124,7 @@ void FlashErase(void)
 #endif
     uint32_t flashAdr = (uint32_t)FLASH_PROGRAM_START_ADDRESS;
     GpioSet();
-    for(uint8_t i = 0; i < 14; i++)  // ToDo: Change it to 28
+    for(uint8_t i = 0; i < NUM_OF_FLASH_PAGES; i++)
     {
         FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
         FLASH->CR |= FLASH_CR_PER;
@@ -137,7 +137,7 @@ void FlashErase(void)
             FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
             for(;;);
         }
-        flashAdr = flashAdr + 0x400;
+        flashAdr = flashAdr + PAGE_SIZE_BYTES;
     }
     GpioReset();
     ar = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;

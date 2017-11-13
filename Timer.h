@@ -15,6 +15,7 @@
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
 void TimerInit(void);
+void TimerDeInit(void);
 void TimerStartTimeout(void);
 uint8_t TimerIsTimeout(uint32_t timeout);
 

@@ -27,6 +27,8 @@ static eSTATES state;
 /* **************** Local func/proc prototypes ( static ) *********************/
 static eFUNCTION_RETURN ProtocolReadCMD(eCOMMAND_ID* cmd);
 static eFUNCTION_RETURN ProtocolSendResponse(eRESPONSE_ID res);
+static void ProtocolDelay3ms(void);
+static void ProtocolStartApp(void);
 
 /******************************************************************************/
 /**
@@ -56,6 +58,7 @@ void ProtocolStateProcess(void)
             if((ret == eFunction_Ok) && (input == eCMD_BootloadMode))
             {
                 state = eSTATE_BootloaderMode;
+                ProtocolDelay3ms();
                 ProtocolSendResponse(eRES_Ready);
             }
             if(TimerIsTimeout(WAIT_CMD_TIMEOUT_S))
@@ -72,11 +75,12 @@ void ProtocolStateProcess(void)
                     FlashErase(); /* Erase flash */
                     if(FlashIsErased())
                     {
-                      ProtocolSendResponse(eRES_OK);
+                        ProtocolSendResponse(eRES_OK);
                     }
                 }
                 else if(input == eCMD_WriteMemory)
                 {
+                    ProtocolDelay3ms();
                     if(FlashIsErased())
                     {
                         state = eSTATE_WaitForPacket;
@@ -92,6 +96,7 @@ void ProtocolStateProcess(void)
                 }
                 else if(input == eCMD_Finish)
                 {
+                    ProtocolDelay3ms();
                     ProtocolSendResponse(eRES_OK);
                     state = eSTATE_ExitBootloader;
                 }
@@ -112,7 +117,7 @@ void ProtocolStateProcess(void)
             }
             break;
         case eSTATE_ReceivePacket:
-            ret = Usart1Receive(&dataReceived.u8Data[0], 68);
+            ret = Usart1Receive(&dataReceived.u8Data[0], sizeof(tDATA_PACKET));
             if(ret == eFunction_Ok)
             {
                 /* 68 bytes data should be now in place */
@@ -139,10 +144,10 @@ void ProtocolStateProcess(void)
             break;
         case eSTATE_WritePacket:
             // write to flash
-            if(FlashWrite(&dataReceived.u8Data[0]))
+            if(FlashWrite(&dataReceived.u8Data[0], BLOCK_SIZE))
             {
                 // verify immediately
-                if(FlashVerify(&dataReceived.u8Data[0]))
+                if(FlashVerify(&dataReceived.u8Data[0], BLOCK_SIZE))
                 {
                     state = eSTATE_OKtoSender;
                 }
@@ -173,11 +178,37 @@ void ProtocolStateProcess(void)
             break;
         case eSTATE_ExitBootloader:
             FlashLock();
-            // start application()
+            // start application
+            ProtocolStartApp();
             break;
         default:
             break;
     }
+}
+
+/******************************************************************************/
+/**
+* static void ProtocolStartApp(void)
+* @brief Copy execption vector table from application to RAM and jump to reset
+*        handler.
+*
+*******************************************************************************/
+static void ProtocolStartApp(void)
+{
+    extern uint32_t __Vectors_Size;
+    volatile uint32_t *__vectors = (volatile uint32_t *)0x08001000;
+    volatile uint32_t *__ram = (volatile uint32_t *)0x20000000;
+    TimerDeInit();
+    for(int i = 0; i < ((uint32_t)&__Vectors_Size / sizeof(uint32_t)); i++)
+    {
+        __ram[i] = __vectors[i];
+    }
+
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;
+    SYSCFG->CFGR1 |= SYSCFG_CFGR1_MEM_MODE;  // remap exception vectors
+
+    __set_MSP(*__vectors);  // setup stack pointer
+    ((void (*)(void))*(__vectors + 1))();  // jump to reset handler
 }
 
 /******************************************************************************/
@@ -219,4 +250,9 @@ static eFUNCTION_RETURN ProtocolSendResponse(eRESPONSE_ID res)
     dataTx[1] = res & 0x00FF; // LSB
     Usart1Transmit(&dataTx[0], 2);
     return eFunction_Ok;
+}
+
+static void ProtocolDelay3ms(void)
+{
+    for(uint16_t i = 0; i < 3000u; i++){}
 }
