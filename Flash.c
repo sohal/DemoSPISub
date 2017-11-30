@@ -8,15 +8,18 @@
 #include "stm32f0xx.h"
 #include "Flash.h"
 #include "Gpio.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
-#define PAGE_SIZE_BYTES 0x400
+#define PAGE_SIZE_BYTES             0x400
+#define FLASH_PROGRAM_START_ADDRESS 0x08001000
+#define NUM_OF_FLASH_PAGES          28
+#define FLASH_CRC_LENGTH_ADDRESS    0x08007FFC  /**< Store CRC and length */
 
 /* ********************* Type definitions ( typedef ) *************************/
-
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static uint8_t IsErased;
+static uint8_t isErased;
 static volatile uint16_t *ar;
 static volatile uint16_t *vr;
 
@@ -28,7 +31,7 @@ static volatile uint16_t *vr;
 *******************************************************************************/
 void FlashInit(void)
 {
-    IsErased = 0;
+    isErased = 0;
     ar = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
     vr = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
     // Unlock Flash
@@ -61,7 +64,7 @@ uint8_t FlashWrite(uint8_t* buf, uint16_t size)
         *ar++ = (uint16_t)(buf[i+1] << 8) | buf[i];
         while((FLASH->SR & FLASH_SR_BSY) != 0);
         FLASH->CR &= ~FLASH_CR_PG;
-        if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0) 
+        if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0)
         {
             FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
             for(;;);
@@ -99,31 +102,17 @@ uint8_t FlashVerify(uint8_t* buf, uint16_t size)
 
 /******************************************************************************/
 /**
-* void FlashErase(void)
+* uint8_t FlashErase(void)
 * @brief Erase Flash from 0x08001000 to 0x08008000 by page, each page is 1K.
 *
+* @returns   1 if successful
+*            or
+*            0 if an error occurs.
+*
 *******************************************************************************/
-void FlashErase(void)
+uint8_t FlashErase(void)
 {
-#if 0
-    // Erase 1 page
-    FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
-    FLASH->CR |= FLASH_CR_PER;
-    FLASH->AR = (uint32_t)FLASH_PROGRAM_START_ADDRESS;
-    FLASH->CR |= FLASH_CR_STRT;
-    while((FLASH->SR & FLASH_SR_BSY) != 0);
-    FLASH->CR &= ~FLASH_CR_PER;
-    if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0)
-    {
-        FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
-        for(;;);
-    }
-    ar = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
-    vr = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
-    IsErased = 1;
-#endif
     uint32_t flashAdr = (uint32_t)FLASH_PROGRAM_START_ADDRESS;
-    GpioSet();
     for(uint8_t i = 0; i < NUM_OF_FLASH_PAGES; i++)
     {
         FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
@@ -135,14 +124,14 @@ void FlashErase(void)
         if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0)
         {
             FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
-            for(;;);
+            return 0;
         }
         flashAdr = flashAdr + PAGE_SIZE_BYTES;
     }
-    GpioReset();
     ar = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
     vr = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
-    IsErased = 1;
+    isErased = 1;
+    return 1;
 }
 
 /******************************************************************************/
@@ -153,7 +142,7 @@ void FlashErase(void)
 *******************************************************************************/
 uint8_t FlashIsErased(void)
 {
-    return IsErased;
+    return isErased;
 }
 
 /******************************************************************************/
@@ -165,4 +154,106 @@ uint8_t FlashIsErased(void)
 void FlashLock(void)
 {
     FLASH->CR |= FLASH_CR_LOCK;
+}
+
+/******************************************************************************/
+/**
+* uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
+* @brief Write 4 bytes firmware parameters (i.e. FW crc and length) to a fixed 
+*        Flash address.
+*
+* @param[in] fwParam firmware parameters to be written to flash
+* @returns   1 if successful
+*            or
+*            0 if an error occurs.
+*
+*******************************************************************************/
+uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
+{
+    uint16_t *ad = (uint16_t *)FLASH_CRC_LENGTH_ADDRESS;
+    FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
+    /* Write FW CRC */
+    FLASH->CR |= FLASH_CR_PG;
+    *ad = (uint16_t)fwParam.u16FWCRC;
+    while((FLASH->SR & FLASH_SR_BSY) != 0);
+    FLASH->CR &= ~FLASH_CR_PG;
+    if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0)
+    {
+        FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
+        return 0;
+    }
+    ad++;
+    /* Write FW length */
+    FLASH->CR |= FLASH_CR_PG;
+    *ad = (uint16_t)fwParam.u16FWLen;
+    while((FLASH->SR & FLASH_SR_BSY) != 0);
+    FLASH->CR &= ~FLASH_CR_PG;
+    if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0)
+    {
+        FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
+        return 0;
+    }
+    return 1;
+}
+
+/******************************************************************************/
+/**
+* uint8_t FlashVerifyFWParam(tFIRMWARE_PARAM fwParam)
+* @brief Verify firmware parameters in Flash after the write.
+*
+* @param[in] fwParam firmware parameters to be compared with flash
+* @returns   1 if matches
+*            or
+*            0 if doesn't match.
+*
+*******************************************************************************/
+uint8_t FlashVerifyFWParam(tFIRMWARE_PARAM fwParam)
+{
+    uint16_t *ad = (uint16_t *)FLASH_CRC_LENGTH_ADDRESS;
+    if(*ad != fwParam.u16FWCRC)
+    {
+        return 0;
+    }
+    ad++;
+    if(*ad != fwParam.u16FWLen)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+/******************************************************************************/
+/**
+* uint8_t FlashVerifyFirmware(void)
+* @brief Verify firmware in Flash by comparing the stored crc with the 
+*        calculated crc.
+*
+* @returns   1 if matches
+*            or
+*            0 if doesn't match.
+*
+*******************************************************************************/
+uint8_t FlashVerifyFirmware(void)
+{
+    uint16_t i = 0;
+    uint16_t dataByte;
+    static volatile uint16_t *fwar;
+    fwar = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
+    CRCInit();
+    /* Read from FLASH_CRC_LENGTH_ADDRESS the firmware crc and length from host */
+    uint16_t crcFromHost = *(uint16_t *)FLASH_CRC_LENGTH_ADDRESS;
+    uint16_t lenFromHost = *(uint16_t *)(FLASH_CRC_LENGTH_ADDRESS + 2);
+    /* Calculate local crc */
+    while(i < lenFromHost) 
+    {
+        /* Read from address of the firmware and calculate crc */
+        dataByte = *fwar++;
+        (void)CRCCalc16((uint8_t *)&dataByte, 2);
+        i += 2;
+    }
+    if(CRCGetFWParam().u16FWCRC == crcFromHost)
+    {
+        return 1;
+    }
+    return 0;
 }

@@ -10,23 +10,21 @@
 #include "Timer.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
-
 /* ********************* Type definitions ( typedef ) *************************/
-
 /* *********************** Global data definitions ****************************/
-volatile uint32_t Tick;
+volatile uint32_t tick;
+
 /* **************** Global constant definitions ( const ) *********************/
-
 /* ***************** Modul global data segment ( static ) *********************/
-static uint32_t TickStart;
-/* *************** Modul global constants ( static const ) ********************/
+static uint32_t tickStart;
 
+/* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
 
 void TIM2_IRQHandler(void) 
 {
     TIM2->SR &= ~TIM_SR_UIF;
-    Tick++;
+    tick++;
 }
 
 /******************************************************************************/
@@ -38,8 +36,8 @@ void TIM2_IRQHandler(void)
 void TimerInit(void)
 {
     // Configure Timer
-    TickStart = 0;
-    Tick = 0;
+    tickStart = 0;
+    tick = 0;
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 
     TIM2->ARR = 8000000;
@@ -68,7 +66,7 @@ void TimerDeInit(void)
 *******************************************************************************/
 void TimerStartTimeout(void)
 {
-    TickStart = Tick;
+    tickStart = tick;
 }
 
 /******************************************************************************/
@@ -85,8 +83,8 @@ void TimerStartTimeout(void)
 uint8_t TimerIsTimeout(uint32_t timeout)
 {
     uint8_t retVal = 0;
-    // (Tick - TickStart) is overflow safe. e.g. (uint8_t)2-(uint8_t)254 = (uint8_t)4 
-    if((Tick - TickStart) >= timeout)
+    // (tick - tickStart) is overflow safe. e.g. (uint8_t)2-(uint8_t)254 = (uint8_t)4 
+    if((tick - tickStart) >= timeout)
     {
         retVal = 1;
     }

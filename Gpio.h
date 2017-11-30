@@ -44,18 +44,33 @@ typedef enum
     GPIO_AF_2 = 0x02
 } GPIOAF_TypeDef;
 
-typedef enum 
-{
-    GPIO_PIN_2 = 0x02,
-    GPIO_PIN_3 = 0x03,
+typedef enum {
+  
+    GPIO_PIN_2  = 0x02,
+    GPIO_PIN_3  = 0x03,
+    GPIO_PIN_4  = 0x04,
+    GPIO_PIN_5  = 0x05,
+    GPIO_PIN_6  = 0x06,
+    GPIO_PIN_7  = 0x07,
+    GPIO_PIN_11 = 0x0b,
+    GPIO_PIN_12 = 0x0c,
     GPIO_PIN_15 = 0x0F
 } GPIOPinPos_TypeDef;
+
+typedef enum
+{
+    eSPI    = 0,
+    eUSART  = 1
+}eCOMMUNICATION_INTERFACE;
+
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
 void GpioInit(void);
-void GpioSet(void);
-void GpioReset(void);
+void GpioB3Set(void);
+void GpioB3Reset(void);
+eCOMMUNICATION_INTERFACE GpioGetComIF(void);
+
 #endif
 
 /* end of Gpio.h */

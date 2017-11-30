@@ -1,7 +1,7 @@
 /******************************************************************************/
 /**
 * @file Gpio.c
-* @brief Setup GPIO B pin 3 for debugging
+* @brief Setup GPIO B pins
 *
 *******************************************************************************/
 
@@ -24,9 +24,9 @@
 *
 *******************************************************************************/
 void GpioInit(void)
-{    
+{
     RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-    
+
     GPIOB->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (GPIO_PIN_3 * 2));
     GPIOB->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (GPIO_PIN_3 * 2));
     GPIOB->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)GPIO_PIN_3));
@@ -43,7 +43,7 @@ void GpioInit(void)
 * @brief Set Gpio B3 to high.
 *
 *******************************************************************************/
-void GpioSet(void)
+void GpioB3Set(void)
 {
     GPIOB->BSRR = (uint16_t)(((uint16_t)1) << ((uint16_t)GPIO_PIN_3));
 }
@@ -54,8 +54,20 @@ void GpioSet(void)
 * @brief Set Gpio B3 to low.
 *
 *******************************************************************************/
-void GpioReset(void)
+void GpioB3Reset(void)
 {
     GPIOB->BRR = (uint16_t)(((uint16_t)1) << ((uint16_t)GPIO_PIN_3));
+}
+
+/******************************************************************************/
+/**
+* eCOMMUNICATION_INTERFACE GpioGetComIF(void)
+* @brief Read in the communcation interface setting from Gpio.
+* @returns via SPI or via USART
+*
+*******************************************************************************/
+eCOMMUNICATION_INTERFACE GpioGetComIF(void)
+{
+    return eUSART;
 }
 

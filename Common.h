@@ -1,40 +1,33 @@
 /******************************************************************************/
 /**
-* @file Protocol.h
-* @brief Implementation of the protocol layer
+* @file Common.h
+* @brief Definition and type defines of the common stuff
 *
 *******************************************************************************/
-#ifndef PROTOCOL_H
-#define PROTOCOL_H
+#ifndef COMMON_H
+#define COMMON_H
 /* ***************** Header / include files ( #include ) **********************/
-#include "Command.h"
-
 /* *************** Constant / macro definitions ( #define ) *******************/
+#define TIMEOUT_263ms 100000
+#define TIMEOUT_100ms  38081
+#define TIMEOUT_10ms    3808
+
 /* ********************* Type definitions ( typedef ) *************************/
 /**
-* @enum eSTATES
-* @brief Bootloader states
+* @enum eFUNCTION_RETURN
+* @brief Return value of the transmit functions.
 */
 typedef enum
 {
-    eSTATE_WaitForCmd     = 0,/**< Wait for "ready" command from the bootloader */
-    eSTATE_BootloaderMode = 1,
-    eSTATE_WaitForPacket  = 2,
-    eSTATE_OKtoSender     = 3,
-    eSTATE_WritePacket    = 4,
-    eSTATE_ReceivePacket  = 5,
-    eSTATE_WriteCRC       = 6,
-    eSTATE_VerifyCRC      = 7,      
-    eSTATE_Error          = 8,
-    eSTATE_ExitBootloader = 9
-}eSTATES;
+    eFunction_Ok       = 0, /**< Everything is fine */
+    eFunction_Timeout  = 1, /**< Polling timeout    */
+    eFunction_Error    = 2  /**< Data lost          */
+}eFUNCTION_RETURN;
 
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
-void ProtocolInit(void);
-void ProtocolStateProcess(void);
 
 #endif
 
-/* end of Protocol.h */
+/* end of Packet.h */

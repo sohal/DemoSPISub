@@ -52,7 +52,7 @@
           <OutputName>Bootloader</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
-          <CreateHexFile>0</CreateHexFile>
+          <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
           <ListingPath>.\Listings\</ListingPath>
@@ -311,7 +311,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>4</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -334,7 +334,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define></Define>
+              <Define>USE_SPI USE_USART</Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
@@ -444,6 +444,21 @@
               <FileName>Gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>Spi1.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Spi1.h</FilePath>
+            </File>
+            <File>
+              <FileName>Spi1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Spi1.c</FilePath>
+            </File>
+            <File>
+              <FileName>Common.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Common.h</FilePath>
             </File>
           </Files>
         </Group>

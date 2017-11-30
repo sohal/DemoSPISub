@@ -1,28 +1,24 @@
 /******************************************************************************/
 /**
-* @file Usart1.h
-* @brief Implement usart1
+* @file Spi1.h
+* @brief Implement SPI1
 *
 *******************************************************************************/
-#ifndef USART1_H
-#define USART1_H
+#ifndef SPI1_H
+#define SPI1_H
 
 /* ***************** Header / include files ( #include ) **********************/
 #include "stm32f0xx.h"
 #include "Common.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
-#define __DIV(__PCLK, __BAUD)       ((__PCLK*25)/(4*__BAUD))
-#define __DIVMANT(__PCLK, __BAUD)   (__DIV(__PCLK, __BAUD)/100)
-#define __DIVFRAQ(__PCLK, __BAUD)   (((__DIV(__PCLK, __BAUD) - (__DIVMANT(__PCLK, __BAUD) * 100)) * 16 + 50) / 100)
-#define __USART_BRR(__PCLK, __BAUD) ((__DIVMANT(__PCLK, __BAUD) << 4)|(__DIVFRAQ(__PCLK, __BAUD) & 0x0F))
-
 /* ********************* Type definitions ( typedef ) *************************/
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
-void Usart1Init(void);
-void Usart1Transmit(uint8_t *pTxData, uint16_t size);
-eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, uint16_t size);
-uint8_t Usart1ByteReceived(void);
+void Spi1Init(void);
+void Spi1Transmit(uint8_t *pTxData, uint16_t size);
+eFUNCTION_RETURN Spi1Receive(uint8_t *pRxData, uint16_t size);
+uint8_t Spi1ByteReceived(void);
+
 #endif

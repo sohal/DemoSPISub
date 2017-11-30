@@ -10,18 +10,23 @@
 #include <stddef.h>
 #include <string.h>
 #include "Usart1.h"
+#include "Spi1.h"
 #include "Protocol.h"
 #include "Packet.h"
 #include "Timeout.h"
 #include "Timer.h"
 #include "Flash.h"
+#include "Gpio.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
 static tDATA_PACKET dataReceived;
+static tFIRMWARE_PARAM firmwareParam;
 static eSTATES state;
+static eCOMMUNICATION_INTERFACE comIF;
 
 /* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
@@ -39,7 +44,9 @@ static void ProtocolStartApp(void);
 void ProtocolInit(void)
 {
     state = eSTATE_WaitForCmd;
-    memset(&dataReceived, 0, sizeof(dataReceived));
+    memset(&firmwareParam, 0, sizeof(tFIRMWARE_PARAM));
+    memset(&dataReceived, 0, sizeof(tDATA_PACKET));
+    comIF = GpioGetComIF();
 }
 /******************************************************************************/
 /**
@@ -51,9 +58,11 @@ void ProtocolStateProcess(void)
 {
     eCOMMAND_ID input = eCMD_NotValid; /* the input 2 bytes command from UART */
     eFUNCTION_RETURN ret;
+    static uint8_t isFinishCmd = 0;
     switch(state)
     {
         case eSTATE_WaitForCmd:
+            isFinishCmd = 0;
             ret = ProtocolReadCMD(&input);
             if((ret == eFunction_Ok) && (input == eCMD_BootloadMode))
             {
@@ -63,7 +72,7 @@ void ProtocolStateProcess(void)
             }
             if(TimerIsTimeout(WAIT_CMD_TIMEOUT_S))
             {
-                state = eSTATE_ExitBootloader;
+                state = eSTATE_VerifyCRC;
             }
             break;
         case eSTATE_BootloaderMode:
@@ -94,11 +103,16 @@ void ProtocolStateProcess(void)
                     }
                     // start Bootloader Timeout
                 }
+                else if(input == eCMD_WriteCRC)
+                {
+                    state = eSTATE_WriteCRC;
+                    ProtocolSendResponse(eRES_OK);
+                }
                 else if(input == eCMD_Finish)
                 {
+                    isFinishCmd = 1;
                     ProtocolDelay3ms();
-                    ProtocolSendResponse(eRES_OK);
-                    state = eSTATE_ExitBootloader;
+                    state = eSTATE_VerifyCRC;
                 }
                 else
                 {
@@ -107,17 +121,34 @@ void ProtocolStateProcess(void)
             }
             break;
         case eSTATE_WaitForPacket:
-            if (Usart1ByteReceived())
+            if(comIF == eSPI)
             {
-                state = eSTATE_ReceivePacket;
-            }  
+                if (Spi1ByteReceived())
+                {
+                    state = eSTATE_ReceivePacket;
+                }
+            }
+            else //if(comIF == eUSART)
+            {
+                if (Usart1ByteReceived())
+                {
+                    state = eSTATE_ReceivePacket;
+                }
+            }
             if(TimerIsTimeout(BOOTLOADER_TIMEOUT_S))
             {
                 state = eSTATE_BootloaderMode;
             }
             break;
         case eSTATE_ReceivePacket:
-            ret = Usart1Receive(&dataReceived.u8Data[0], sizeof(tDATA_PACKET));
+            if(comIF == eSPI)
+            {
+                ret = Spi1Receive(&dataReceived.u8Data[0], sizeof(tDATA_PACKET));
+            }
+            else //if(comIF == eUSART)
+            {
+                ret = Usart1Receive(&dataReceived.u8Data[0], sizeof(tDATA_PACKET));
+            }
             if(ret == eFunction_Ok)
             {
                 /* 68 bytes data should be now in place */
@@ -136,8 +167,39 @@ void ProtocolStateProcess(void)
                 state = eSTATE_Error;
             }
             break;
+        case eSTATE_WriteCRC:
+            if(comIF == eSPI)
+            {
+                ret = Spi1Receive((uint8_t *)&firmwareParam.u16FWCRC, sizeof(tFIRMWARE_PARAM));
+            }
+            else //if(comIF == eUSART)
+            {
+                ret = Usart1Receive((uint8_t *)&firmwareParam.u16FWCRC, sizeof(tFIRMWARE_PARAM));
+            }
+            if(ret == eFunction_Ok)
+            {
+                /* Write to a fixed Flash address */
+                if(FlashWriteFWParam(firmwareParam))
+                {
+                    // verify immediately
+                    if(FlashVerifyFWParam(firmwareParam))
+                    {
+                        ProtocolSendResponse(eRES_OK);
+                    }
+                    else
+                    {
+                        ProtocolSendResponse(eRES_Abort);
+                    }
+                    state = eSTATE_BootloaderMode;
+                }            
+            }
+            else
+            {
+                state = eSTATE_Error;
+            }
+            break;
         case eSTATE_OKtoSender:
-            // uart write OK to sender and go to eSTATE_WaitForPacket
+            // write OK to sender and go to eSTATE_WaitForPacket
             ProtocolSendResponse(eRES_OK);
             state = eSTATE_WaitForPacket;
             TimerStartTimeout();
@@ -168,6 +230,25 @@ void ProtocolStateProcess(void)
                 {
                     //ProtocolSendResponse(eRES_Error);
                     //state = eSTATE_ExitBootloader;
+                }
+            }
+            break;
+        case eSTATE_VerifyCRC:
+            if(FlashVerifyFirmware())
+            {
+                state = eSTATE_ExitBootloader;
+                if(1 == isFinishCmd) /* Only send response if it comes from Finish command */
+                {
+                    ProtocolSendResponse(eRES_OK);
+                }
+            }
+            else
+            {
+                /* Stay in Bootloader mode if it fails the verification */
+                state = eSTATE_BootloaderMode;
+                if(1 == isFinishCmd) /* Only send response if it comes from Finish command */
+                {
+                    ProtocolSendResponse(eRES_AppCrcErr);
                 }
             }
             break;
@@ -226,7 +307,14 @@ static void ProtocolStartApp(void)
 static eFUNCTION_RETURN ProtocolReadCMD(eCOMMAND_ID* cmd)
 {
     uint8_t dataRx[2] = {0x00, 0x00};
-    Usart1Receive(dataRx, 2);
+    if(comIF == eSPI)
+    {
+        Spi1Receive(dataRx, 2);
+    }
+    else
+    {
+        Usart1Receive(dataRx, 2);
+    }
     *cmd = (eCOMMAND_ID)(((uint16_t)dataRx[0] << 8) | dataRx[1]);
     return eFunction_Ok;
 }
@@ -248,7 +336,14 @@ static eFUNCTION_RETURN ProtocolSendResponse(eRESPONSE_ID res)
     uint8_t dataTx[2];
     dataTx[0] = (res >> 8) & 0x00FF; // MSB
     dataTx[1] = res & 0x00FF; // LSB
-    Usart1Transmit(&dataTx[0], 2);
+    if(comIF == eSPI)
+    {
+        Spi1Transmit(&dataTx[0], 2);
+    }
+    else
+    {
+        Usart1Transmit(&dataTx[0], 2);
+    }
     return eFunction_Ok;
 }
 

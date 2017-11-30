@@ -6,11 +6,13 @@
 ******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
 #include "Usart1.h"
+#include "Spi1.h"
 #include "Protocol.h"
 #include "Timer.h"
 #include "Flash.h"
 #include "Packet.h"
 #include "Gpio.h"
+#include "CRC.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
@@ -26,11 +28,14 @@ int main (void)
 {
     GpioInit();
     Usart1Init();
+    Spi1Init();
+    CRCInit();
     PacketInit();
     ProtocolInit();
     FlashInit();
     TimerInit();
     TimerStartTimeout();
+
     for(;;)
     {
         ProtocolStateProcess();

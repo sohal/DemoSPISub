@@ -4,9 +4,10 @@
 * @brief Set up timer and timer interrupt
 *
 *******************************************************************************/
-/* ***************** Header / include files ( #include ) **********************/
 #ifndef TIMER_H
 #define TIMER_H
+
+/* ***************** Header / include files ( #include ) **********************/
 #include <stdint.h>
 
 /* *************** Constant / macro definitions ( #define ) *******************/

@@ -6,9 +6,11 @@
 *******************************************************************************/
 #ifndef PACKET_H
 #define PACKET_H
+
 /* ***************** Header / include files ( #include ) **********************/
 /* *************** Constant / macro definitions ( #define ) *******************/
 #define BLOCK_SIZE 64
+
 /* ********************* Type definitions ( typedef ) *************************/
 /**
 * @struct tDATA_PACKET
@@ -20,6 +22,16 @@ typedef struct
     uint16_t u16SeqCnt;           /**< Sequence count */
     uint16_t u16CRC;              /**< Two-byte CRC   */
 }tDATA_PACKET;
+
+/**
+* @struct tFIRMWARE_PARAM
+* @brief Two-byte CRC over the whole firmware and the length of firmware in bytes
+*/
+typedef struct
+{
+    uint16_t u16FWCRC;    /**< Two-byte CRC over firmware */
+    uint16_t u16FWLen;    /**< Length of the firmware     */
+}tFIRMWARE_PARAM;
 
 /**
 * @enum ePACKET_STATUS
@@ -37,6 +49,7 @@ typedef enum
 /* ********************** Global func/proc prototypes *************************/
 void PacketInit(void);
 ePACKET_STATUS PacketProcess(tDATA_PACKET packet);
+
 #endif
 
 /* end of Packet.h */
