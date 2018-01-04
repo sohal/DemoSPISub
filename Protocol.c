@@ -19,6 +19,8 @@
 #include "Gpio.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
+#define SRAM_START_ADDRESS  0x20000000
+
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
@@ -191,7 +193,8 @@ void ProtocolStateProcess(void)
                         ProtocolSendResponse(eRES_Abort);
                     }
                     state = eSTATE_BootloaderMode;
-                }            
+                }
+              
             }
             else
             {
@@ -277,8 +280,8 @@ void ProtocolStateProcess(void)
 static void ProtocolStartApp(void)
 {
     extern uint32_t __Vectors_Size;
-    volatile uint32_t *__vectors = (volatile uint32_t *)0x08001000;
-    volatile uint32_t *__ram = (volatile uint32_t *)0x20000000;
+    volatile uint32_t *__vectors = (volatile uint32_t *)FLASH_PROGRAM_START_ADDRESS;
+    volatile uint32_t *__ram = (volatile uint32_t *)SRAM_START_ADDRESS;
     TimerDeInit();
     for(int i = 0; i < ((uint32_t)&__Vectors_Size / sizeof(uint32_t)); i++)
     {
@@ -347,6 +350,13 @@ static eFUNCTION_RETURN ProtocolSendResponse(eRESPONSE_ID res)
     return eFunction_Ok;
 }
 
+/******************************************************************************/
+/**
+* static void ProtocolDelay3ms(void)
+*
+* @brief Function to delay about 3 ms.
+*
+*******************************************************************************/
 static void ProtocolDelay3ms(void)
 {
     for(uint16_t i = 0; i < 3000u; i++){}

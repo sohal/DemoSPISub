@@ -11,7 +11,6 @@
 
 /* *************** Constant / macro definitions ( #define ) *******************/
 #define PAGE_SIZE_BYTES             0x400
-#define FLASH_PROGRAM_START_ADDRESS 0x08001000
 #define NUM_OF_FLASH_PAGES          28
 #define FLASH_CRC_LENGTH_ADDRESS    0x08007FFC  /**< Store CRC and length */
 

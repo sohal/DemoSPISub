@@ -1,33 +1,24 @@
 /******************************************************************************/
 /**
-* @file Flash.h
-* @brief Implement Flash driver
+* @file Can.h
+* @brief Implement CAN
 *
 *******************************************************************************/
-#ifndef FLASH_H
-#define FLASH_H
+#ifndef CAN_H
+#define CAN_H
 
 /* ***************** Header / include files ( #include ) **********************/
-#include <stdint.h>
-#include "CRC.h"
+#include "stm32f0xx.h"
+#include "Common.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
-#define FLASH_PROGRAM_START_ADDRESS 0x08001000
 /* ********************* Type definitions ( typedef ) *************************/
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
-/*******************************************************************************/
-void FlashInit(void);
-uint8_t FlashWrite(uint8_t* buf, uint16_t size);
-uint8_t FlashVerify(uint8_t* buf, uint16_t size);
-uint8_t FlashErase(void);
-uint8_t FlashIsErased(void);
-void FlashLock(void);
-uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam);
-uint8_t FlashVerifyFWParam(tFIRMWARE_PARAM fwParam);
-uint8_t FlashVerifyFirmware(void);
+void CanInit(void);
+void CanTransmit(uint8_t *pTxData, uint16_t size);
+eFUNCTION_RETURN CanReceive(uint8_t *pRxData, uint16_t size);
+uint8_t CanByteReceived(void);
 
 #endif
-
-/* end of Flash.h */

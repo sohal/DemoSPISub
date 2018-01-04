@@ -5,8 +5,12 @@
 *
 ******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
-#include "Usart1.h"
-#include "Spi1.h"
+#if(CPU_TYPE == STM32F031K6)
+    #include "Usart1.h"
+    #include "Spi1.h"
+#else
+    #include "Can.h"
+#endif
 #include "Protocol.h"
 #include "Timer.h"
 #include "Flash.h"

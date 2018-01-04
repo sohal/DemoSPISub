@@ -118,13 +118,13 @@ eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, uint16_t size)
     while(sizeLoc > 0)
     {
         uint32_t i = 0;
-        sizeLoc--;
         while((i++ < TIMEOUT_100ms) && ((USART1->ISR & USART_ISR_RXNE) == 0));
         if ((USART1->ISR & USART_ISR_RXNE) != 0)
         {
             *pRxDataLoc = USART1->RDR;
             pRxDataLoc++;
             retryCnt = 0;
+            sizeLoc--;
             DataReceived = 1;
         }
         else
