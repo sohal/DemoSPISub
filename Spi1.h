@@ -17,7 +17,7 @@
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
 void Spi1Init(void);
-void Spi1Transmit(uint8_t *pTxData, uint16_t size);
+eFUNCTION_RETURN Spi1Transmit(uint8_t *pTxData, uint16_t size);
 eFUNCTION_RETURN Spi1Receive(uint8_t *pRxData, uint16_t size);
 uint8_t Spi1ByteReceived(void);
 

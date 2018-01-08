@@ -45,7 +45,7 @@ void PacketInit(void)
 ePACKET_STATUS PacketProcess(tDATA_PACKET packet)
 {
     ePACKET_STATUS errStatus = ePACKET_Ok;
-    if(CRCCalc16(&packet.u8Data[0], 64) != packet.u16CRC)
+    if(CRCCalc16(&packet.u8Data[0], BLOCK_SIZE, 0) != packet.u16CRC)
     {
         errStatus = ePACKET_CRCError;
     }

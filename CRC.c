@@ -16,35 +16,23 @@
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static tFIRMWARE_PARAM fwParam;
-
 /* **************** Local func/proc prototypes ( static ) *********************/
 
-/******************************************************************************/
-/**
-* void CRCInit(void)
-* @brief Initialize function.
-*******************************************************************************/
-void CRCInit(void)
-{
-    fwParam.u16FWCRC = 0;
-    fwParam.u16FWLen = 0;
-}
 
 /******************************************************************************/
 /**
-* uint16_t CRCCalc16(const uint8_t *data, uint16_t size)
+* uint16_t CRCCalc16(const uint8_t *data, uint16_t size, uint16_t startVal)
 * @brief Generate 16 bits CRC for an input array.
 *
 * @param[in] data pointer to data array
 * @param[in] size byte number of the array
+* @param[in] startVal start value of the CRC calculation
 * @returns   calculated 16 bits CRC.
 *******************************************************************************/
-uint16_t CRCCalc16(const uint8_t *data, uint16_t size)
+uint16_t CRCCalc16(const uint8_t *data, uint16_t size, uint16_t startVal)
 {
-    uint16_t out = fwParam.u16FWCRC;
+    uint16_t out = startVal;
     uint8_t bits_read = 0, bit_flag;
-    fwParam.u16FWLen += size;
     /* Sanity check */
     if(data == NULL)
     {
@@ -70,17 +58,5 @@ uint16_t CRCCalc16(const uint8_t *data, uint16_t size)
             out ^= CRC16;
         }
     }
-    fwParam.u16FWCRC = out;
     return out;
-}
-
-/******************************************************************************/
-/**
-* uint16_t CRCGetFWParam(void)
-* @brief Returns 16 bits firmware CRC and the firmware length.
-*
-*******************************************************************************/
-tFIRMWARE_PARAM CRCGetFWParam(void)
-{
-    return fwParam;
 }

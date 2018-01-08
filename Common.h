@@ -8,10 +8,6 @@
 #define COMMON_H
 /* ***************** Header / include files ( #include ) **********************/
 /* *************** Constant / macro definitions ( #define ) *******************/
-#define TIMEOUT_263ms 100000
-#define TIMEOUT_100ms  38081
-#define TIMEOUT_10ms    3808
-
 /* ********************* Type definitions ( typedef ) *************************/
 /**
 * @enum eFUNCTION_RETURN

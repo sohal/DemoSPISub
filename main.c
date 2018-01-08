@@ -33,7 +33,6 @@ int main (void)
     GpioInit();
     Usart1Init();
     Spi1Init();
-    CRCInit();
     PacketInit();
     ProtocolInit();
     FlashInit();

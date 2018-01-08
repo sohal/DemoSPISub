@@ -299,7 +299,7 @@ static void ProtocolStartApp(void)
 /**
 * static eFUNCTION_RETURN ProtocolReadCMD(eCOMMAND_ID* cmd)
 *
-* @brief Read 2 bytes from UART (polling) and construct a command.
+* @brief Read 2 bytes from UART or SPI (polling) and construct a command.
 *
 * @param[in/out] cmd pointer to 2 bytes command
 * @returns    eFunction_Ok if successful
@@ -326,7 +326,8 @@ static eFUNCTION_RETURN ProtocolReadCMD(eCOMMAND_ID* cmd)
 /**
 * static eFUNCTION_RETURN ProtocolSendResponse(eRESPONSE_ID* res)
 *
-* @brief Write 2 bytes response to UART.
+* @brief Write 2 bytes response, for UART interface eFunction_Ok is returned;
+*        For SPI interface, there could be a timeout due to the nature of SPI.
 *
 * @param[in/out] res pointer to 2 bytes response
 * @returns    eFunction_Ok if successful
@@ -336,18 +337,19 @@ static eFUNCTION_RETURN ProtocolReadCMD(eCOMMAND_ID* cmd)
 *******************************************************************************/
 static eFUNCTION_RETURN ProtocolSendResponse(eRESPONSE_ID res)
 {
+    eFUNCTION_RETURN ret = eFunction_Ok;
     uint8_t dataTx[2];
     dataTx[0] = (res >> 8) & 0x00FF; // MSB
     dataTx[1] = res & 0x00FF; // LSB
     if(comIF == eSPI)
     {
-        Spi1Transmit(&dataTx[0], 2);
+        ret = Spi1Transmit(&dataTx[0], 2);
     }
     else
     {
         Usart1Transmit(&dataTx[0], 2);
     }
-    return eFunction_Ok;
+    return ret;
 }
 
 /******************************************************************************/
@@ -360,4 +362,4 @@ static eFUNCTION_RETURN ProtocolSendResponse(eRESPONSE_ID res)
 static void ProtocolDelay3ms(void)
 {
     for(uint16_t i = 0; i < 3000u; i++){}
-}
+}    

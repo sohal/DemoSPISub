@@ -8,6 +8,7 @@
 /* ***************** Header / include files ( #include ) **********************/
 #include "Spi1.h"
 #include "Gpio.h"
+#include "Timeout.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
@@ -81,31 +82,46 @@ void Spi1Init(void)
 
 /******************************************************************************/
 /**
-* void Spi1Transmit(uint8_t *pTxData, uint16_t size)
-* @brief Implement SPI1 send.
+* eFUNCTION_RETURN Spi1Transmit(uint8_t *pTxData, uint16_t size)
+* @brief Implement SPI1 send. 1s timeout if nothing is received for transmitting.
 *
 * @param[in] pTxData pointer to the data to be transmitted
 * @param[in] size number of bytes
+* @returns   eFunction_Ok if successful
+*            or
+*            eFunction_Timeout if an timeout error occurs.
 *
 *******************************************************************************/
-void Spi1Transmit(uint8_t *pTxData, uint16_t size)
+eFUNCTION_RETURN Spi1Transmit(uint8_t *pTxData, uint16_t size)
 {
     uint8_t tmp;
     uint16_t sizeLoc = size;
+    uint32_t i = 0;
+    eFUNCTION_RETURN ret;
     while(size-- > 0)
     {
         while((SPI1->SR & SPI_SR_TXE) == 0);
         *(uint8_t *)&(SPI1->DR) = (uint8_t)*pTxData++;
     }
-    while((SPI1->SR & SPI_SR_FTLVL) != 0);
-    /* The FTLVL goes to 0 after the first bit of the last byte is
+    while((i++ < TIMEOUT_1s) && ((SPI1->SR & SPI_SR_FTLVL) != 0));
+    /* The  goes to 0 after the first bit of the last byte is
      * send out, so we need to wait another 7 bits plus the time
-     * till CS goes high.This takes 160 us with SPI bit rate 100000.   */
+     * till CS goes high. This takes 160 us with SPI bit rate 100000.   */
     Spi1Delay160us();
     while (sizeLoc-- > 0) // flush Rx FIFO as it was filled with dummy data for Tx.
     {      
-        tmp = SPI1->DR;    
-    } 
+        tmp = SPI1->DR;
+        tmp = SPI1->SR;
+    }
+    if((SPI1->SR & SPI_SR_FTLVL) == 0)
+    {
+        ret = eFunction_Ok;
+    }
+    else
+    {
+        ret = eFunction_Timeout;
+    }
+    return ret;
 }
 
 /******************************************************************************/
@@ -141,7 +157,7 @@ eFUNCTION_RETURN Spi1Receive(uint8_t *pRxData, uint16_t size)
     while(sizeLoc > 0)
     {
         uint32_t i = 0;        
-        while((i++ < TIMEOUT_100ms) && ((SPI1->SR & SPI_SR_RXNE) == 0));
+        while((i++ < PACKET_TIMEOUT_SPI_MS) && ((SPI1->SR & SPI_SR_RXNE) == 0));
         if ((SPI1->SR & SPI_SR_RXNE) != 0)
         {
             *pRxDataLoc = SPI1->DR;
@@ -154,7 +170,8 @@ eFUNCTION_RETURN Spi1Receive(uint8_t *pRxData, uint16_t size)
         {
             sizeLoc = size;
             pRxDataLoc = pRxData;
-            tmp = SPI1->SR;
+            tmp = SPI1->DR; // clear overrun flag
+            tmp = SPI1->SR; // clear overrun flag
             if(retryCnt++ >= 3)
             {
                 if (DataReceived)

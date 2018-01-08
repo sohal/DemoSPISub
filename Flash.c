@@ -237,8 +237,8 @@ uint8_t FlashVerifyFirmware(void)
     uint16_t i = 0;
     uint16_t dataByte;
     static volatile uint16_t *fwar;
+    uint16_t CRCtemp = 0;
     fwar = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
-    CRCInit();
     /* Read from FLASH_CRC_LENGTH_ADDRESS the firmware crc and length from host */
     uint16_t crcFromHost = *(uint16_t *)FLASH_CRC_LENGTH_ADDRESS;
     uint16_t lenFromHost = *(uint16_t *)(FLASH_CRC_LENGTH_ADDRESS + 2);
@@ -247,10 +247,10 @@ uint8_t FlashVerifyFirmware(void)
     {
         /* Read from address of the firmware and calculate crc */
         dataByte = *fwar++;
-        (void)CRCCalc16((uint8_t *)&dataByte, 2);
+        CRCtemp = CRCCalc16((uint8_t *)&dataByte, 2, CRCtemp);
         i += 2;
     }
-    if(CRCGetFWParam().u16FWCRC == crcFromHost)
+    if(CRCtemp == crcFromHost)
     {
         return 1;
     }
