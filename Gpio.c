@@ -68,6 +68,6 @@ void GpioB3Reset(void)
 *******************************************************************************/
 eCOMMUNICATION_INTERFACE GpioGetComIF(void)
 {
-    return eSPI;//eUSART;
+    return eUSART;
 }
 
