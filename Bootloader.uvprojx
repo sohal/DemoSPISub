@@ -14,16 +14,16 @@
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
-          <Device>STM32F031K6</Device>
+          <Device>STM32F042K6</Device>
           <Vendor>STMicroelectronics</Vendor>
           <PackID>Keil.STM32F0xx_DFP.1.5.0</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
-          <Cpu>IRAM(0x20000000,0x1000) IROM(0x08000000,0x8000) CPUTYPE("Cortex-M0") CLOCK(12000000) ELITTLE</Cpu>
+          <Cpu>IRAM(0x20000000,0x1800) IROM(0x08000000,0x8000) CPUTYPE("Cortex-M0") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32F0xx_32 -FS08000000 -FL08000 -FP0($$Device:STM32F031K6$Flash\STM32F0xx_32.FLM))</FlashDriverDll>
+          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32F0xx_32 -FS08000000 -FL08000 -FP0($$Device:STM32F042K6$Flash\STM32F0xx_32.FLM))</FlashDriverDll>
           <DeviceId>0</DeviceId>
-          <RegisterFile>$$Device:STM32F031K6$Device\Include\stm32f0xx.h</RegisterFile>
+          <RegisterFile>$$Device:STM32F042K6$Device\Include\stm32f0xx.h</RegisterFile>
           <MemoryEnv></MemoryEnv>
           <Cmp></Cmp>
           <Asm></Asm>
@@ -33,7 +33,7 @@
           <SLE66CMisc></SLE66CMisc>
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
-          <SFDFile>$$Device:STM32F031K6$SVD\STM32F0x1.svd</SFDFile>
+          <SFDFile>$$Device:STM32F042K6$SVD\STM32F0x2.svd</SFDFile>
           <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
@@ -58,7 +58,7 @@
           <ListingPath>.\Listings\</ListingPath>
           <HexFormatSelection>1</HexFormatSelection>
           <Merge32K>0</Merge32K>
-          <CreateBatchFile>0</CreateBatchFile>
+          <CreateBatchFile>1</CreateBatchFile>
           <BeforeCompile>
             <RunUserProg1>0</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
@@ -244,7 +244,7 @@
               <IRAM>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x1000</Size>
+                <Size>0x1800</Size>
               </IRAM>
               <IROM>
                 <Type>1</Type>
@@ -299,7 +299,7 @@
               <OCR_RVCT9>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x1000</Size>
+                <Size>0x1800</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -334,7 +334,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_SPI USE_USART</Define>
+              <Define></Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
@@ -559,7 +559,7 @@
           <targetInfo name="Target 1"/>
         </targetInfos>
       </component>
-      <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="2.2.3" condition="STM32F031x6 CMSIS">
+      <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="2.2.3" condition="STM32F042x6 CMSIS">
         <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.5.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
@@ -568,32 +568,32 @@
     </components>
     <files>
       <file attr="config" category="sourceAsm" condition="Compiler ARMCC" name="Device\Source\ARM\startup_stm32f031x6.s" version="2.2.3">
-        <instance index="0">RTE\Device\STM32F031K6\startup_stm32f031x6.s</instance>
+        <instance index="0" removed="1">RTE\Device\STM32F031K6\startup_stm32f031x6.s</instance>
         <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="2.2.3" condition="STM32F031x6 CMSIS"/>
+        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.5.0"/>
+        <targetInfos/>
+      </file>
+      <file attr="config" category="sourceC" name="Device\Source\system_stm32f0xx.c" version="2.2.3">
+        <instance index="0" removed="1">RTE\Device\STM32F031K6\system_stm32f0xx.c</instance>
+        <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="2.2.3" condition="STM32F031x6 CMSIS"/>
+        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.5.0"/>
+        <targetInfos/>
+      </file>
+      <file attr="config" category="sourceAsm" condition="Compiler ARMCC" name="Device\Source\ARM\startup_stm32f042x6.s" version="2.2.3">
+        <instance index="0">RTE\Device\STM32F042K6\startup_stm32f042x6.s</instance>
+        <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="2.2.3" condition="STM32F042x6 CMSIS"/>
         <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.5.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
         </targetInfos>
       </file>
       <file attr="config" category="sourceC" name="Device\Source\system_stm32f0xx.c" version="2.2.3">
-        <instance index="0">RTE\Device\STM32F031K6\system_stm32f0xx.c</instance>
-        <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="2.2.3" condition="STM32F031x6 CMSIS"/>
+        <instance index="0">RTE\Device\STM32F042K6\system_stm32f0xx.c</instance>
+        <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="2.2.3" condition="STM32F042x6 CMSIS"/>
         <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.5.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
         </targetInfos>
-      </file>
-      <file attr="config" category="sourceAsm" condition="Compiler ARMCC" name="Device\Source\ARM\startup_stm32f042x6.s" version="0.0.0">
-        <instance index="0" removed="1">RTE\Device\STM32F042K6\startup_stm32f042x6.s</instance>
-        <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="2.2.3" condition="STM32F042x6 CMSIS"/>
-        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.5.0"/>
-        <targetInfos/>
-      </file>
-      <file attr="config" category="sourceC" name="Device\Source\system_stm32f0xx.c" version="0.0.0">
-        <instance index="0" removed="1">RTE\Device\STM32F042K6\system_stm32f0xx.c</instance>
-        <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="2.2.3" condition="STM32F042x6 CMSIS"/>
-        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.5.0"/>
-        <targetInfos/>
       </file>
       <file attr="config" category="sourceAsm" condition="Compiler ARMCC" name="Device\Source\ARM\startup_stm32f042x6.s" version="2.2.3">
         <instance index="0" removed="1">RTE\Device\STM32F042T6\startup_stm32f042x6.s</instance>

@@ -5,11 +5,13 @@
 *
 ******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
-#if(CPU_TYPE == STM32F031K6)
+#if defined(STM32F031x6)
     #include "Usart1.h"
     #include "Spi1.h"
-#else
+#elif defined(STM32F042x6)
     #include "Can.h"
+#else 
+    #error "CPU type needs to be specified based on the device, either STMF031K6 or STM32F042K6"
 #endif
 #include "Protocol.h"
 #include "Timer.h"
@@ -27,12 +29,15 @@
 /* **************** Local func/proc prototypes ( static ) *********************/
 
 /******************************************************************************/
-
 int main (void)
 {
     GpioInit();
+#if defined(STM32F031x6)
     Usart1Init();
     Spi1Init();
+#elif defined(STM32F042x6)
+    CanInit();
+#endif
     PacketInit();
     ProtocolInit();
     FlashInit();

@@ -19,6 +19,6 @@
 void CanInit(void);
 void CanTransmit(uint8_t *pTxData, uint16_t size);
 eFUNCTION_RETURN CanReceive(uint8_t *pRxData, uint16_t size);
-uint8_t CanByteReceived(void);
+uint8_t CanMsgReceived(void);
 
 #endif

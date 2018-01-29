@@ -9,8 +9,14 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include "Usart1.h"
-#include "Spi1.h"
+#if defined(STM32F031x6)
+    #include "Usart1.h"
+    #include "Spi1.h"
+#elif defined(STM32F042x6)
+    #include "Can.h"
+#else 
+    #error "CPU type needs to be specified based on the device, either STMF031K6 or STM32F042K6"
+#endif
 #include "Protocol.h"
 #include "Packet.h"
 #include "Timeout.h"
@@ -28,7 +34,9 @@
 static tDATA_PACKET dataReceived;
 static tFIRMWARE_PARAM firmwareParam;
 static eSTATES state;
+#if defined(STM32F031x6)
 static eCOMMUNICATION_INTERFACE comIF;
+#endif
 
 /* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
@@ -48,7 +56,9 @@ void ProtocolInit(void)
     state = eSTATE_WaitForCmd;
     memset(&firmwareParam, 0, sizeof(tFIRMWARE_PARAM));
     memset(&dataReceived, 0, sizeof(tDATA_PACKET));
+#if defined(STM32F031x6)
     comIF = GpioGetComIF();
+#endif
 }
 /******************************************************************************/
 /**
@@ -123,6 +133,7 @@ void ProtocolStateProcess(void)
             }
             break;
         case eSTATE_WaitForPacket:
+#if defined(STM32F031x6)
             if(comIF == eSPI)
             {
                 if (Spi1ByteReceived())
@@ -137,12 +148,20 @@ void ProtocolStateProcess(void)
                     state = eSTATE_ReceivePacket;
                 }
             }
+#elif defined(STM32F042x6)
+            //CAN interface
+            if (CanMsgReceived())
+            {
+                state = eSTATE_ReceivePacket;
+            }
+#endif
             if(TimerIsTimeout(BOOTLOADER_TIMEOUT_S))
             {
                 state = eSTATE_BootloaderMode;
             }
             break;
         case eSTATE_ReceivePacket:
+#if defined(STM32F031x6)
             if(comIF == eSPI)
             {
                 ret = Spi1Receive(&dataReceived.u8Data[0], sizeof(tDATA_PACKET));
@@ -151,6 +170,10 @@ void ProtocolStateProcess(void)
             {
                 ret = Usart1Receive(&dataReceived.u8Data[0], sizeof(tDATA_PACKET));
             }
+#elif defined(STM32F042x6)
+            //CAN interface
+            ret = CanReceive(&dataReceived.u8Data[0], sizeof(tDATA_PACKET));
+#endif
             if(ret == eFunction_Ok)
             {
                 /* 68 bytes data should be now in place */
@@ -170,6 +193,7 @@ void ProtocolStateProcess(void)
             }
             break;
         case eSTATE_WriteCRC:
+#if defined(STM32F031x6)
             if(comIF == eSPI)
             {
                 ret = Spi1Receive((uint8_t *)&firmwareParam.u16FWCRC, sizeof(tFIRMWARE_PARAM));
@@ -178,6 +202,10 @@ void ProtocolStateProcess(void)
             {
                 ret = Usart1Receive((uint8_t *)&firmwareParam.u16FWCRC, sizeof(tFIRMWARE_PARAM));
             }
+#elif defined(STM32F042x6)
+            //CAN interface
+            ret = CanReceive((uint8_t *)&firmwareParam.u16FWCRC, sizeof(tFIRMWARE_PARAM));
+#endif
             if(ret == eFunction_Ok)
             {
                 /* Write to a fixed Flash address */
@@ -310,6 +338,7 @@ static void ProtocolStartApp(void)
 static eFUNCTION_RETURN ProtocolReadCMD(eCOMMAND_ID* cmd)
 {
     uint8_t dataRx[2] = {0x00, 0x00};
+#if defined(STM32F031x6)
     if(comIF == eSPI)
     {
         Spi1Receive(dataRx, 2);
@@ -318,6 +347,9 @@ static eFUNCTION_RETURN ProtocolReadCMD(eCOMMAND_ID* cmd)
     {
         Usart1Receive(dataRx, 2);
     }
+#elif defined(STM32F042x6)
+    CanReceive(dataRx, 2);
+#endif
     *cmd = (eCOMMAND_ID)(((uint16_t)dataRx[0] << 8) | dataRx[1]);
     return eFunction_Ok;
 }
@@ -341,6 +373,7 @@ static eFUNCTION_RETURN ProtocolSendResponse(eRESPONSE_ID res)
     uint8_t dataTx[2];
     dataTx[0] = (res >> 8) & 0x00FF; // MSB
     dataTx[1] = res & 0x00FF; // LSB
+#if defined(STM32F031x6)
     if(comIF == eSPI)
     {
         ret = Spi1Transmit(&dataTx[0], 2);
@@ -349,6 +382,10 @@ static eFUNCTION_RETURN ProtocolSendResponse(eRESPONSE_ID res)
     {
         Usart1Transmit(&dataTx[0], 2);
     }
+#elif defined(STM32F042x6)
+    //via CAN
+    CanTransmit(&dataTx[0], 2);
+#endif
     return ret;
 }
 
