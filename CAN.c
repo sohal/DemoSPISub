@@ -16,6 +16,9 @@
 #define CAN_MAX_DATA_LENGTH  8
 #define CAN_ID_TRS           33
 #define CAN_ID_REV           11
+
+#define min(a,b) ((a)<(b)?(a):(b))
+
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
@@ -36,12 +39,12 @@ static uint8_t firstMessageRead;
 void CanInit(void)
 {
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-  
+
     GPIOA->AFR[GPIO_PIN_11 >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)GPIO_PIN_11) & (uint32_t)0x07) * 4));
     GPIOA->AFR[GPIO_PIN_11 >> 3] |= ((uint32_t)(GPIO_AF_4) << ((uint32_t)(((uint32_t)GPIO_PIN_11) & (uint32_t)0x07) * 4));
     GPIOA->AFR[GPIO_PIN_12 >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)GPIO_PIN_12) & (uint32_t)0x07) * 4));
     GPIOA->AFR[GPIO_PIN_12 >> 3] |= ((uint32_t)(GPIO_AF_4) << ((uint32_t)(((uint32_t)GPIO_PIN_12) & (uint32_t)0x07) * 4));
-  
+
     GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (GPIO_PIN_11 * 2));
     GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (GPIO_PIN_11 * 2));
     GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)GPIO_PIN_11));
@@ -50,7 +53,7 @@ void CanInit(void)
     GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (GPIO_PIN_11 * 2));
     GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (GPIO_PIN_11 * 2));
     GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (GPIO_PIN_11 * 2));
-  
+
     GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (GPIO_PIN_12 * 2));
     GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (GPIO_PIN_12 * 2));
     GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)GPIO_PIN_12));
@@ -59,18 +62,18 @@ void CanInit(void)
     GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (GPIO_PIN_12 * 2));
     GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (GPIO_PIN_12 * 2));
     GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (GPIO_PIN_12 * 2));
-    
+
     RCC->APB1ENR |= RCC_APB1ENR_CANEN;
-  
+
     // Enter init mode
-  
+
     CAN->MCR = CAN_MCR_INRQ;
     while((CAN->MSR & CAN_MSR_INAK) == 0);
-  
+
     CAN->MCR |= CAN_MCR_NART;
     //CAN->BTR = (2 << 20) | (3 << 16) | (7 << 0); // 125kbit at 8MHz
     CAN->BTR = (2 << 20) | (3 << 16) | (1 << 0); // 500kbit at 8MHz
-  
+
     CAN->FMR |= CAN_FMR_FINIT;
     CAN->FA1R &= ~CAN_FA1R_FACT0;  // deactivate filter
     CAN->FS1R |= CAN_FS1R_FSC0;  // set 32-bit scale configuration
@@ -83,7 +86,7 @@ void CanInit(void)
     CAN->FA1R |= CAN_FA1R_FACT0;  // activate filter
     CAN->FMR &= ~CAN_FMR_FINIT;
   // Leave init mode
-  
+
     CAN->MCR &= ~CAN_MCR_INRQ;
     while((CAN->MSR & CAN_MSR_INAK) != 0);
     memset(firstMessage, 0, CAN_MAX_DATA_LENGTH);
@@ -105,27 +108,34 @@ void CanInit(void)
 *******************************************************************************/
 void CanTransmit(uint8_t *pTxData, uint16_t size)
 {
-    while((CAN->TSR & CAN_TSR_TME0) == 0);  // wait until mailbox 0 is empty
-    CAN->sTxMailBox[0].TIR = (CAN_ID_TRS << 21);
+    uint16_t numRound = 0;
+    uint32_t msgL = 0;
+    uint32_t msgH = 0;
+    while(size > 0)
+    {
+        uint16_t i;
+        uint8_t len = min(size, CAN_MAX_DATA_LENGTH);
+        for(i = 0; i < min(size, 4); i++)
+        {
+            msgL = (uint32_t)((pTxData[i + (numRound * 8)] << (i * 8)) | msgL);
+        }
+        for(i = min(size, 4); i < len; i++)
+        {
+            msgH = (uint32_t)((pTxData[i + (numRound * 8)] << ((i - 4) * 8)) | msgH);
+        }
+        while((CAN->TSR & CAN_TSR_TME0) == 0);  // wait until mailbox 0 is empty
+        CAN->sTxMailBox[0].TIR = (CAN_ID_TRS << 21);
 //    CAN->sTxMailBox[0].TIR = (CAN_ID_TRS << 3) | CAN_TI0R_IDE;
-
-    if(size == 2) // only data low register is needed
-    {
-        CAN->sTxMailBox[0].TDLR = (uint32_t)((pTxData[1] << 8) | pTxData[0]);
-        CAN->sTxMailBox[0].TDHR = 0;
+        CAN->sTxMailBox[0].TDLR = msgL;
+        CAN->sTxMailBox[0].TDHR = msgH;
+        CAN->sTxMailBox[0].TDTR &= ~CAN_TDT0R_DLC;
+        CAN->sTxMailBox[0].TDTR |= len;
+        CAN->sTxMailBox[0].TIR |= CAN_TI0R_TXRQ;  // start transmission
+        while((CAN->TSR & CAN_TSR_RQCP0) == 0);  // wait until transmission completed
+        CAN->TSR |= CAN_TSR_RQCP0;
+        size -= len;
+        numRound++; 
     }
-    else // this should never happen so send eRES_Error back
-    {
-        CAN->sTxMailBox[0].TDLR = (uint32_t)eRES_Error;
-        CAN->sTxMailBox[0].TDHR = 0;
-    }
-    CAN->sTxMailBox[0].TDTR &= ~CAN_TDT0R_DLC;
-    CAN->sTxMailBox[0].TDTR |= size;    
-    CAN->sTxMailBox[0].TIR |= CAN_TI0R_TXRQ;  // start transmission
-    while((CAN->TSR & CAN_TSR_RQCP0) == 0);  // wait until transmission completed
-    //if((CAN->TSR & CAN_TSR_TXOK0) == 0)  // check whether or not transmission was successful
-    //  for(;;);
-    CAN->TSR |= CAN_TSR_RQCP0;
 }
 
 /******************************************************************************/
@@ -260,7 +270,7 @@ uint8_t CanMsgReceived(void)
         firstMessageLen = CAN->sFIFOMailBox[0].RDTR & 0xf;
         msgL = CAN->sFIFOMailBox[0].RDLR;
         msgH = CAN->sFIFOMailBox[0].RDHR;
-        CAN->RF0R |= CAN_RF0R_RFOM0;        
+        CAN->RF0R |= CAN_RF0R_RFOM0;
         firstMessage[0] = msgL & 0x000000FF;
         firstMessage[1] = (msgL >> 8) & 0x000000FF;
         firstMessage[2] = (msgL >> 16) & 0x000000FF;
