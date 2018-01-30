@@ -92,5 +92,5 @@ uint8_t TimerIsTimeout(uint32_t timeout)
     {
         retVal = 0;
     }
-    return retVal;
+    return 0;
 }

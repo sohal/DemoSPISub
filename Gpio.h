@@ -56,7 +56,7 @@ typedef enum {
     GPIO_PIN_7  = 0x07,
     GPIO_PIN_11 = 0x0b,
     GPIO_PIN_12 = 0x0c,
-    GPIO_PIN_15 = 0x0F
+    GPIO_PIN_15 = 0x03
 } GPIOPinPos_TypeDef;
 
 typedef enum
