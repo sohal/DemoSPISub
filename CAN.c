@@ -9,6 +9,7 @@
 #include "Can.h"
 #include "Gpio.h"
 #include "Timeout.h"
+#include "Command.h"
 #include <string.h>
 
 /* *************** Constant / macro definitions ( #define ) *******************/
@@ -67,11 +68,8 @@ void CanInit(void)
     while((CAN->MSR & CAN_MSR_INAK) == 0);
   
     CAN->MCR |= CAN_MCR_NART;
-    //CAN->BTR = (2 << 20) | (3 << 16) | (5 << 0);
-    //(5 << 0); = 6us bittime
-    //(6 << 0); = 7us bittime
-    //(7 << 0); = 8us bittime..125kbit
-    CAN->BTR = (2 << 20) | (3 << 16) | (7 << 0); // 125kbit
+    //CAN->BTR = (2 << 20) | (3 << 16) | (7 << 0); // 125kbit at 8MHz
+    CAN->BTR = (2 << 20) | (3 << 16) | (1 << 0); // 500kbit at 8MHz
   
     CAN->FMR |= CAN_FMR_FINIT;
     CAN->FA1R &= ~CAN_FA1R_FACT0;  // deactivate filter
@@ -110,18 +108,19 @@ void CanTransmit(uint8_t *pTxData, uint16_t size)
     while((CAN->TSR & CAN_TSR_TME0) == 0);  // wait until mailbox 0 is empty
     CAN->sTxMailBox[0].TIR = (CAN_ID_TRS << 21);
 //    CAN->sTxMailBox[0].TIR = (CAN_ID_TRS << 3) | CAN_TI0R_IDE;
+
     if(size == 2) // only data low register is needed
     {
         CAN->sTxMailBox[0].TDLR = (uint32_t)((pTxData[1] << 8) | pTxData[0]);
         CAN->sTxMailBox[0].TDHR = 0;
     }
-    else // this should never happen so send some dummy data back
+    else // this should never happen so send eRES_Error back
     {
-        CAN->sTxMailBox[0].TDLR = 0x01020304;
-        CAN->sTxMailBox[0].TDHR = 0x05060708;
+        CAN->sTxMailBox[0].TDLR = (uint32_t)eRES_Error;
+        CAN->sTxMailBox[0].TDHR = 0;
     }
     CAN->sTxMailBox[0].TDTR &= ~CAN_TDT0R_DLC;
-    CAN->sTxMailBox[0].TDTR |= size;
+    CAN->sTxMailBox[0].TDTR |= size;    
     CAN->sTxMailBox[0].TIR |= CAN_TI0R_TXRQ;  // start transmission
     while((CAN->TSR & CAN_TSR_RQCP0) == 0);  // wait until transmission completed
     //if((CAN->TSR & CAN_TSR_TXOK0) == 0)  // check whether or not transmission was successful
@@ -246,32 +245,32 @@ uint8_t CanMsgReceived(void)
     uint32_t id;
     if(CAN->RF0R & CAN_RF0R_FMP0)
     {
-      if((CAN->sFIFOMailBox[0].RIR & CAN_RI0R_IDE) == 0)
-      {
-          id = CAN->sFIFOMailBox[0].RIR >> 21;
-      }
-      else
-      {
-          id = CAN->sFIFOMailBox[0].RIR >> 3;
-      }
-      if(id != CAN_ID_REV)
-      {
-          return 0;
-      }
-      firstMessageLen = CAN->sFIFOMailBox[0].RDTR & 0xf;
-      msgL = CAN->sFIFOMailBox[0].RDLR;
-      msgH = CAN->sFIFOMailBox[0].RDHR;
-      CAN->RF0R |= CAN_RF0R_RFOM0;        
-      firstMessage[0] = msgL & 0x000000FF;
-      firstMessage[1] = (msgL >> 8) & 0x000000FF;
-      firstMessage[2] = (msgL >> 16) & 0x000000FF;
-      firstMessage[3] = (msgL >> 24) & 0x000000FF;
-      firstMessage[4] = msgH & 0x000000FF;
-      firstMessage[5] = (msgH >> 8) & 0x000000FF;
-      firstMessage[6] = (msgH >> 16) & 0x000000FF;
-      firstMessage[7] = (msgH >> 24) & 0x000000FF;
-      firstMessageRead = 1;
-      return 1;
+        if((CAN->sFIFOMailBox[0].RIR & CAN_RI0R_IDE) == 0)
+        {
+            id = CAN->sFIFOMailBox[0].RIR >> 21;
+        }
+        else
+        {
+            id = CAN->sFIFOMailBox[0].RIR >> 3;
+        }
+        if(id != CAN_ID_REV)
+        {
+            return 0;
+        }
+        firstMessageLen = CAN->sFIFOMailBox[0].RDTR & 0xf;
+        msgL = CAN->sFIFOMailBox[0].RDLR;
+        msgH = CAN->sFIFOMailBox[0].RDHR;
+        CAN->RF0R |= CAN_RF0R_RFOM0;        
+        firstMessage[0] = msgL & 0x000000FF;
+        firstMessage[1] = (msgL >> 8) & 0x000000FF;
+        firstMessage[2] = (msgL >> 16) & 0x000000FF;
+        firstMessage[3] = (msgL >> 24) & 0x000000FF;
+        firstMessage[4] = msgH & 0x000000FF;
+        firstMessage[5] = (msgH >> 8) & 0x000000FF;
+        firstMessage[6] = (msgH >> 16) & 0x000000FF;
+        firstMessage[7] = (msgH >> 24) & 0x000000FF;
+        firstMessageRead = 1;
+        return 1;
     }
     else
     {
