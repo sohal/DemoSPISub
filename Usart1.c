@@ -9,15 +9,12 @@
 #include "Usart1.h"
 #include "Gpio.h"
 #include "Timeout.h"
-
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static uint8_t firstByte;
-static uint8_t firstByteRead;
-
+static uint16_t index =0;
 /* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
 
@@ -62,8 +59,6 @@ void Usart1Init(void)
     //USART1->BRR = __USART_BRR(8000000UL, 115200);  // 8MHz, 115200 baud
     USART1->BRR = __USART_BRR(8000000UL, 460800);  // 8MHz, 460800 baud
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;  // 8N1
-    firstByte = 0;
-    firstByteRead = 0;
 }
 
 /******************************************************************************/
@@ -81,7 +76,7 @@ void Usart1Transmit(uint8_t *pTxData, uint16_t size)
     {
         size--;
         while((USART1->ISR & USART_ISR_TXE) == 0);
-        USART1->TDR = *pTxData++;
+        USART1->TDR = pTxData[size];
     }
 }
 
@@ -100,56 +95,38 @@ void Usart1Transmit(uint8_t *pTxData, uint16_t size)
 *             eFunction_Timeout if an timeout error occurs.
 *
 *******************************************************************************/
-eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, uint16_t size)
+eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, const uint16_t size)
 {
-    uint16_t sizeLoc = size;
-    uint8_t *pRxDataLoc = pRxData;
-    uint8_t retryCnt = 0; // retry counter, if it reachs 3, return timeout
-    uint8_t DataReceived = 0;
-    if (firstByteRead)
-    {
-        *pRxDataLoc = firstByte;
-        pRxDataLoc++;
-        sizeLoc--;
-        size--;
-        pRxData++;
-        firstByteRead = 0;
-        DataReceived = 1;
-    }
-    while(sizeLoc > 0)
-    {
-        uint32_t i = 0;
-        while((i++ < PACKET_TIMEOUT_UART_MS) && ((USART1->ISR & USART_ISR_RXNE) == 0));
-        if ((USART1->ISR & USART_ISR_RXNE) != 0)
-        {
-            *pRxDataLoc = USART1->RDR;
-            pRxDataLoc++;
-            retryCnt = 0;
-            sizeLoc--;
-            DataReceived = 1;
-        }
-        else
-        {
-            sizeLoc = size;
-            pRxDataLoc = pRxData;
-            USART1->ICR = USART_ICR_ORECF; // clear overrun flag
-            if(retryCnt++ >= 3)
-            {
-                if (DataReceived)
-                {
-                    // data lost
-                    return eFunction_Error;
-                }
-                else
-                {
-                    // polling timeout
-                    return eFunction_Timeout;
-                }
-            }
-        }
-    }
-    return eFunction_Ok;
+	eFUNCTION_RETURN retVal = eFunction_Timeout;
+	
+	if(USART1->ISR & USART_ISR_RXNE)
+	{
+		pRxData[index] = USART1->RDR;
+		index++;
+	}
+	
+	if(index >= size)
+	{
+		index = 0;
+		retVal = eFunction_Ok;
+	}
+  return retVal;
 }
+
+/******************************************************************************/
+/**
+* void Usart1ReceiveReady(void)
+*
+* @brief Reset receive pointer index
+*
+* @returns    none
+*
+*******************************************************************************/
+void Usart1ReceiveReady(void)
+{
+	index = 0;
+}
+
 
 /******************************************************************************/
 /**
@@ -167,8 +144,8 @@ uint8_t Usart1ByteReceived(void)
 {
     if(USART1->ISR & USART_ISR_RXNE)
     {
-        firstByte = USART1->RDR;
-        firstByteRead = 1;
+        //firstByte = USART1->RDR;
+        //firstByteRead = 1;
         return 1;
     }
     else

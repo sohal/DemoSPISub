@@ -121,6 +121,7 @@ eFUNCTION_RETURN Spi1Transmit(uint8_t *pTxData, uint16_t size)
     {
         ret = eFunction_Timeout;
     }
+		(void)tmp;
     return ret;
 }
 
@@ -187,6 +188,7 @@ eFUNCTION_RETURN Spi1Receive(uint8_t *pRxData, uint16_t size)
             }
         }
     }
+		(void)tmp;
     return eFunction_Ok;
 }
 

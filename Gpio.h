@@ -47,7 +47,7 @@ typedef enum
 } GPIOAF_TypeDef;
 
 typedef enum {
-  
+    GPIO_PIN_1  = 0x01,
     GPIO_PIN_2  = 0x02,
     GPIO_PIN_3  = 0x03,
     GPIO_PIN_4  = 0x04,

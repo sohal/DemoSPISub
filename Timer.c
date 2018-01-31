@@ -82,7 +82,7 @@ void TimerStartTimeout(void)
 *******************************************************************************/
 uint8_t TimerIsTimeout(uint32_t timeout)
 {
-    uint8_t retVal = 0;
+	uint8_t retVal;
     // (tick - tickStart) is overflow safe. e.g. (uint8_t)2-(uint8_t)254 = (uint8_t)4 
     if((tick - tickStart) >= timeout)
     {
@@ -92,5 +92,6 @@ uint8_t TimerIsTimeout(uint32_t timeout)
     {
         retVal = 0;
     }
+		(void)retVal;
     return 0;
 }

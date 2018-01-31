@@ -25,7 +25,7 @@
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static tDATA_PACKET dataReceived;
+tDATA_PACKET dataReceived;
 static tFIRMWARE_PARAM firmwareParam;
 static eSTATES state;
 static eCOMMUNICATION_INTERFACE comIF;
@@ -155,7 +155,9 @@ void ProtocolStateProcess(void)
             {
                 /* 68 bytes data should be now in place */
                 // process it, if also fine:
-                if(PacketProcess(dataReceived) == ePACKET_Ok)
+								static ePACKET_STATUS status = ePACKET_Ok;
+							  status = PacketProcess(dataReceived);
+                if(status == ePACKET_Ok)
                 {
                     state = eSTATE_WritePacket;
                 }
@@ -166,7 +168,7 @@ void ProtocolStateProcess(void)
             }
             else
             {
-                state = eSTATE_Error;
+                //state = eSTATE_Error;
             }
             break;
         case eSTATE_WriteCRC:
@@ -198,7 +200,7 @@ void ProtocolStateProcess(void)
             }
             else
             {
-                state = eSTATE_Error;
+                //state = eSTATE_Error;
             }
             break;
         case eSTATE_OKtoSender:

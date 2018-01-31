@@ -16,11 +16,11 @@
 */
 typedef enum
 {
-    eCMD_EraseFlash     = 0x01FE, /**< Erase current firmware in flash                                       */
-    eCMD_WriteMemory    = 0x02FD, /**< Switch to bootloader mode to expect data packets for writing to flash */
-    eCMD_BootloadMode   = 0x03FC, /**< Needs to come within 1s after start up to stay in bootloader mode     */
-    eCMD_WriteCRC       = 0x04FB, /**< Finish writting application, write 2 bytes CRC and 2 bytes length     */
-    eCMD_Finish         = 0x05FA, /**< End of bootloader mode; jump to application code                      */
+    eCMD_EraseFlash     = 0xFE01, /**< Erase current firmware in flash                                       */
+    eCMD_WriteMemory    = 0xFD02, /**< Switch to bootloader mode to expect data packets for writing to flash */
+    eCMD_BootloadMode   = 0xFC03, /**< Needs to come within 1s after start up to stay in bootloader mode     */
+    eCMD_WriteCRC       = 0xFB04, /**< Finish writting application, write 2 bytes CRC and 2 bytes length     */
+    eCMD_Finish         = 0xFA05, /**< End of bootloader mode; jump to application code                      */
     eCMD_NotValid       = 0x0000  /**< */
 }eCOMMAND_ID;
 

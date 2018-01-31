@@ -17,7 +17,8 @@
 #include "Packet.h"
 #include "Gpio.h"
 #include "CRC.h"
-
+#include "ProtoStateMachine.h"
+#include "LED.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
@@ -30,17 +31,17 @@
 
 int main (void)
 {
-    GpioInit();
+	  GpioInit();
+		LED_Init();
     Usart1Init();
     Spi1Init();
     PacketInit();
-    ProtocolInit();
     FlashInit();
-    TimerInit();
-    TimerStartTimeout();
-
+    //TimerInit();
+    //TimerStartTimeout();
+		LED_Off();
     for(;;)
     {
-        ProtocolStateProcess();
+			ProtocolSM_Run();
     }
 }
