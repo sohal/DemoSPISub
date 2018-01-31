@@ -474,11 +474,6 @@
               <FilePath>.\Command.h</FilePath>
             </File>
             <File>
-              <FileName>CRC.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\CRC.h</FilePath>
-            </File>
-            <File>
               <FileName>Packet.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Packet.h</FilePath>
@@ -612,19 +607,14 @@
           </GroupOption>
           <Files>
             <File>
-              <FileName>ProtoStateMachine.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Protocol\ProtoStateMachine.c</FilePath>
-            </File>
-            <File>
               <FileName>LED.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Protocol\LED.c</FilePath>
             </File>
             <File>
-              <FileName>LED.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Protocol\LED.h</FilePath>
+              <FileName>ProtoStateMachine.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Protocol\ProtoStateMachine.c</FilePath>
             </File>
           </Files>
         </Group>

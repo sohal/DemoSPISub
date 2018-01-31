@@ -17,6 +17,7 @@ eFUNCTION_RETURN ProtocolSM_Run(void)
 	static uint16_t crcCalculated = 0xFFFF;
 	static uint16_t crcPrevious = 0x0000;
 	static uint32_t tickCounter = 0U;
+	
 	switch(stateNow)
 	{
 		case eDefaultState:
@@ -25,12 +26,21 @@ eFUNCTION_RETURN ProtocolSM_Run(void)
 				if(Command.receivedvalue == eCMD_BootloadMode)
 				{
 					stateNext = eFlashEraseCMD;
+					tickCounter = 0;
 					Command.returnValue = eRES_Ready;
 					Usart1Transmit(Command.bufferCMD,2);
 				}
 			}else
 			{
-				stateNext = eDefaultState;
+				if(tickCounter > 300000)
+				{
+					stateNext = eFlashVerifyApplication;
+					tickCounter = 0;
+				}else
+				{
+					tickCounter++;
+					stateNext = eDefaultState;
+				}
 			}
 			break;
 			
@@ -150,17 +160,22 @@ eFUNCTION_RETURN ProtocolSM_Run(void)
 			retVal = Usart1Receive(Command.bufferCMD, 2);
 			if((retVal == eFunction_Ok) && (Command.receivedvalue == eCMD_Finish))
 			{				
-				Command.returnValue = eRES_Abort;
-				if(FlashVerifyFirmware())
-				{
-					Command.returnValue = eRES_OK;
-					stateNext = eStartAppCMD;
-				}else
-				{
-					Command.returnValue = eRES_AppCrcErr;
-				}
-				Usart1Transmit(Command.bufferCMD,2);
-			}			
+				stateNext = eFlashVerifyApplication;
+			}
+			break;
+		
+		case eFlashVerifyApplication:
+			Command.returnValue = eRES_Abort;
+			if(FlashVerifyFirmware())
+			{
+				Command.returnValue = eRES_OK;
+				stateNext = eStartAppCMD;
+			}else
+			{
+				Command.returnValue = eRES_AppCrcErr;
+				stateNext = eDefaultState;
+			}
+			Usart1Transmit(Command.bufferCMD,2);
 			break;
 		
 		case eStartAppCMD:
