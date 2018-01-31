@@ -12,7 +12,6 @@
     #include "Can.h"
 #endif
 #include "Protocol.h"
-#include "Timer.h"
 #include "Flash.h"
 #include "Packet.h"
 #include "Gpio.h"
@@ -37,8 +36,6 @@ int main (void)
     Spi1Init();
     PacketInit();
     FlashInit();
-    //TimerInit();
-    //TimerStartTimeout();
 		LED_Off();
     for(;;)
     {

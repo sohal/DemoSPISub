@@ -9,9 +9,11 @@
 		Application should reside at 0x08001000 starting with it's vectors.
 		Application vectors are relocated to 0x20000000, the start of RAM.
 		Both Application and Bootloader should keep a hole of 0xC0 bytes to be occupied by Application vectors in RAM.
-
+## Usage
 	- The bootloader shall wait for ~4 seconds for the host to download new Application.
 
 	- The bootloader shall check after ~4 seconds for a valid Application. 
 		If a valid Application is found, it boots the Application after relocating vectors in RAM and setting appropriate boot mode.
 		If not, it keeps searching for the host to download a new Application. This continues untill a valid Application exists in Flash.
+	
+	- Communication parameters: 57600-8-1

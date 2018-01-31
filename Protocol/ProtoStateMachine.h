@@ -41,7 +41,6 @@ typedef enum {
 	eCrcCMD,
 	eWriteApplicationLen,
 	eFinishUpdate,
-	//eCrcFWConfirm,
 	eFlashVerifyApplication,
 	eStartAppCMD
 }tProtoState;

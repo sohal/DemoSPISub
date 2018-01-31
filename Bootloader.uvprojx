@@ -464,11 +464,6 @@
               <FilePath>.\Packet.c</FilePath>
             </File>
             <File>
-              <FileName>Protocol.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Protocol.c</FilePath>
-            </File>
-            <File>
               <FileName>Command.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Command.h</FilePath>
@@ -482,16 +477,6 @@
               <FileName>Usart1.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Usart1.c</FilePath>
-            </File>
-            <File>
-              <FileName>Timer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Timer.h</FilePath>
-            </File>
-            <File>
-              <FileName>Timer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Timer.c</FilePath>
             </File>
             <File>
               <FileName>Flash.c</FileName>

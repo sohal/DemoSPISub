@@ -52,12 +52,7 @@ void Usart1Init(void)
     GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (GPIO_PIN_15 * 2));
 
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
-    //  RCC->CFGR3 &= ~3;
-    //  RCC->CFGR3 |= 0;  // USART1 Clock Source = PCLK
-
-    //USART1->BRR = __USART_BRR(8000000UL, 9600);  // 8MHz, 9600 baud
-    //USART1->BRR = __USART_BRR(8000000UL, 115200);  // 8MHz, 115200 baud
-    USART1->BRR = __USART_BRR(8000000UL, 460800);  // 8MHz, 460800 baud
+    USART1->BRR = __USART_BRR(8000000UL, 57600);  // 8MHz, 57600 baud
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;  // 8N1
 }
 
