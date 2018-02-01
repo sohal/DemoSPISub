@@ -179,6 +179,7 @@ eFUNCTION_RETURN ProtocolSM_Run(void)
 			break;
 		
 		case eStartAppCMD:
+			LED_Off();
       FlashLock();
 			for(int i = 0; i < 0x30 /*((uint32_t)&__Vectors_Size / sizeof(uint32_t))*/; i++)
 			{
