@@ -484,16 +484,6 @@
               <FilePath>.\Flash.c</FilePath>
             </File>
             <File>
-              <FileName>Gpio.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Gpio.h</FilePath>
-            </File>
-            <File>
-              <FileName>Gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Gpio.c</FilePath>
-            </File>
-            <File>
               <FileName>Spi1.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Spi1.h</FilePath>

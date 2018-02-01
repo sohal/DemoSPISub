@@ -21,9 +21,8 @@
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
-void Usart1Init(void);
+void Usart1Init(const uint32_t RxPin, const uint32_t TxPin, const uint32_t Baud);
 void Usart1Transmit(uint8_t *pTxData, uint16_t size);
 void Usart1ReceiveReady(void);
 eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, uint16_t size);
-uint8_t Usart1ByteReceived(void);
 #endif

@@ -20,6 +20,10 @@ typedef enum
     eFunction_Error    = 2  /**< Data lost          */
 }eFUNCTION_RETURN;
 
+#define BSP_RxPin	0x03U
+#define BSP_TxPin 0x02U
+#define BSP_Baud	57600U
+
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/

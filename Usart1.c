@@ -24,35 +24,35 @@ static uint16_t index =0;
 * @brief Configure USART1 (STM32F031:PA2(TX),PA15(RX)) and initialze variables.
 *
 *******************************************************************************/
-void Usart1Init(void)
+void Usart1Init(const uint32_t RxPin, const uint32_t TxPin, const uint32_t Baud)
 {
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
-    GPIOA->AFR[GPIO_PIN_2 >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)GPIO_PIN_2) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[GPIO_PIN_2 >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)GPIO_PIN_2) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[GPIO_PIN_15 >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)GPIO_PIN_15) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[GPIO_PIN_15 >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)GPIO_PIN_15) & (uint32_t)0x07) * 4));
+    GPIOA->AFR[TxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
+    GPIOA->AFR[TxPin >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
+    GPIOA->AFR[RxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
+    GPIOA->AFR[RxPin >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
 
-    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (GPIO_PIN_2 * 2));
-    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (GPIO_PIN_2 * 2));
-    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)GPIO_PIN_2));
-    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)GPIO_PIN_2));
-    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (GPIO_PIN_2 * 2));
-    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (GPIO_PIN_2 * 2));
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (GPIO_PIN_2 * 2));
-    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (GPIO_PIN_2 * 2));
+    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (TxPin * 2));
+    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (TxPin * 2));
+    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)TxPin));
+    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)TxPin));
+    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (TxPin * 2));
+    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (TxPin * 2));
+    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (TxPin * 2));
+    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (TxPin * 2));
 
-    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (GPIO_PIN_15 * 2));
-    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (GPIO_PIN_15 * 2));
-    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)GPIO_PIN_15));
-    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)GPIO_PIN_15));
-    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (GPIO_PIN_15 * 2));
-    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (GPIO_PIN_15 * 2));
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (GPIO_PIN_15 * 2));
-    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (GPIO_PIN_15 * 2));
+    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (RxPin * 2));
+    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (RxPin * 2));
+    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)RxPin));
+    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)RxPin));
+    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (RxPin * 2));
+    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (RxPin * 2));
+    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (RxPin * 2));
+    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (RxPin * 2));
 
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
-    USART1->BRR = __USART_BRR(8000000UL, 57600);  // 8MHz, 57600 baud
+    USART1->BRR = __USART_BRR(8000000UL, Baud);  // 8MHz, 57600 baud
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;  // 8N1
 }
 
@@ -120,31 +120,4 @@ eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, const uint16_t size)
 void Usart1ReceiveReady(void)
 {
 	index = 0;
-}
-
-
-/******************************************************************************/
-/**
-* uint8_t Usart1ByteReceived(void)
-*
-* @brief Check if there is any data on bus. Read the first byte out.
-*        Fetch a byte takes ~2 us with 9600 baudrate.
-*
-* @returns    1 if there is a byte on bus.
-*             or
-*             0 if there is nothing.
-*
-*******************************************************************************/
-uint8_t Usart1ByteReceived(void)
-{
-    if(USART1->ISR & USART_ISR_RXNE)
-    {
-        //firstByte = USART1->RDR;
-        //firstByteRead = 1;
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
 }
