@@ -11,67 +11,59 @@
 /* ********************* Type definitions ( typedef ) *************************/
 typedef enum 
 {
-    GPIO_Mode_IN  = 0x00,
-    GPIO_Mode_OUT = 0x01,
-    GPIO_Mode_AF  = 0x02,
-    GPIO_Mode_AN  = 0x03
+    GPIO_Mode_IN  = 0,
+    GPIO_Mode_OUT,
+    GPIO_Mode_AF,
+    GPIO_Mode_AN
 } GPIOMode_TypeDef;
 
 typedef enum 
 {
-    GPIO_OType_PP = 0x00,
-    GPIO_OType_OD = 0x01
+    GPIO_OType_PP = 0,
+    GPIO_OType_OD
 } GPIOOType_TypeDef;
 
 typedef enum 
 {
-    GPIO_Speed_Level_1 = 0x01,
-    GPIO_Speed_Level_2 = 0x02,
-    GPIO_Speed_Level_3 = 0x03
+    GPIO_Speed_Level_1 = 1,
+    GPIO_Speed_Level_2,
+    GPIO_Speed_Level_3
 } GPIOSpeed_TypeDef;
 
 typedef enum 
 {
-    GPIO_PuPd_NOPULL = 0x00,
-    GPIO_PuPd_UP     = 0x01,
-    GPIO_PuPd_DOWN   = 0x02
+    GPIO_PuPd_NOPULL = 0,
+    GPIO_PuPd_UP,
+    GPIO_PuPd_DOWN
 } GPIOPuPd_TypeDef;
 
 typedef enum 
 {
-    GPIO_AF_0 = 0x00,
-    GPIO_AF_1 = 0x01,
-    GPIO_AF_2 = 0x02,
-    GPIO_AF_3 = 0x03,
-    GPIO_AF_4 = 0x04
+    GPIO_AF_0 = 0,
+    GPIO_AF_1,
+    GPIO_AF_2,
+    GPIO_AF_3,
+    GPIO_AF_4
 } GPIOAF_TypeDef;
 
 typedef enum {
-    GPIO_PIN_1  = 0x01,
-    GPIO_PIN_2  = 0x02,
-    GPIO_PIN_3  = 0x03,
-    GPIO_PIN_4  = 0x04,
-    GPIO_PIN_5  = 0x05,
-    GPIO_PIN_6  = 0x06,
-    GPIO_PIN_7  = 0x07,
-    GPIO_PIN_11 = 0x0b,
-    GPIO_PIN_12 = 0x0c,
-    GPIO_PIN_15 = 0x0F
+	GPIO_PIN_0  = 0,
+    GPIO_PIN_1,
+    GPIO_PIN_2,
+    GPIO_PIN_3,
+    GPIO_PIN_4,
+    GPIO_PIN_5,
+    GPIO_PIN_6,
+    GPIO_PIN_7,
+	GPIO_PIN_8,
+	GPIO_PIN_9,
+	GPIO_PIN_10,
+    GPIO_PIN_11,
+    GPIO_PIN_12,
+	GPIO_PIN_13,
+	GPIO_PIN_14,
+    GPIO_PIN_15
 } GPIOPinPos_TypeDef;
-
-typedef enum
-{
-    eSPI    = 0,
-    eUSART  = 1
-}eCOMMUNICATION_INTERFACE;
-
-/* ***************** Global data declarations ( extern ) **********************/
-/* ***** External parameter / constant declarations ( extern const ) **********/
-/* ********************** Global func/proc prototypes *************************/
-void GpioInit(void);
-void GpioB3Set(void);
-void GpioB3Reset(void);
-eCOMMUNICATION_INTERFACE GpioGetComIF(void);
 
 #endif
 

@@ -58,21 +58,34 @@ tBSPStruct* BSP_Init(void)
 	switch(gIF.BSP_Type)
 	{
 		case BSP_Pilot:
-			gIF.pInit = &Usart1Init;
-			gIF.pRecv = &Usart1Recv;
-			gIF.pSend = &Usart1Send;
-			gIF.pReset = &Usart1Reset;
+			gIF.pInit 	= &Usart1Init;
+			gIF.pRecv 	= &Usart1Recv;
+			gIF.pSend 	= &Usart1Send;
+			gIF.pReset 	= &Usart1Reset;
+			gIF.pDeInit = &Usart1DeInit;
 			break;
+		
 		case BSP_TorqueSensor:
-			gIF.pInit = &Usart1Init;
-			gIF.pRecv = &Usart1Recv;
-			gIF.pSend = &Usart1Send;
-			gIF.pReset = &Usart1Reset;
+			gIF.pInit 	= &Usart1Init;
+			gIF.pRecv 	= &Usart1Recv;
+			gIF.pSend 	= &Usart1Send;
+			gIF.pReset 	= &Usart1Reset;
+			gIF.pDeInit = &Usart1DeInit;	
 			break;
+		
 		case BSP_ExtWatchdog:
-			gIF.pInit = NULL;
-			gIF.pRecv = NULL;
-			gIF.pSend = NULL;
+			gIF.pInit 	= NULL;
+			gIF.pRecv 	= NULL;
+			gIF.pSend 	= NULL;
+			gIF.pDeInit = &Usart1DeInit;
+			break;
+		
+		case BSP_NucleoF0x:
+			gIF.pInit 	= &Usart1Init;
+			gIF.pRecv 	= &Usart1Recv;
+			gIF.pSend 	= &Usart1Send;
+			gIF.pReset 	= &Usart1Reset;
+			gIF.pDeInit = &Usart1DeInit;
 			break;
 		
 		case BSP_STM32F042:

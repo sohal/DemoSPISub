@@ -10,6 +10,7 @@
 /* ***************** Header / include files ( #include ) **********************/
 #include "stm32f0xx.h"
 #include "Common.h"
+#include "Gpio.h"
 #include "BSP.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 #define __DIV(__PCLK, __BAUD)       ((__PCLK*25)/(4*__BAUD))
@@ -25,4 +26,5 @@ void Usart1Init(tBSPType BSPType);
 void Usart1Send(uint8_t *pTxData, uint16_t size);
 void Usart1Reset(void);
 eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, uint16_t size);
+void Usart1DeInit(void);
 #endif

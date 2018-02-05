@@ -7,7 +7,7 @@
 
 /* ***************** Header / include files ( #include ) **********************/
 #include "Usart1.h"
-#include "GPIO.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
@@ -148,4 +148,25 @@ eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, const uint16_t size)
 inline void Usart1Reset(void)
 {
 	index = 0;
+}
+
+/******************************************************************************/
+/**
+* void Usart1DeInit(void)
+*
+* @brief Reset receive pointer index
+*
+* @returns    none
+*
+*******************************************************************************/
+inline void Usart1DeInit(void)
+{
+	index = 0;
+	RCC->APB2ENR &= ~(RCC_APB2ENR_USART1EN);
+	
+	USART1->CR1 &= ~(USART_CR1_TE | USART_CR1_RE | USART_CR1_UE);  
+	
+	pGPIO_USART->AFR[TxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
+	
+	pGPIO_USART->AFR[RxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
 }
