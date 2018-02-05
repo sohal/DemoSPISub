@@ -10,7 +10,7 @@
 /* ***************** Header / include files ( #include ) **********************/
 #include "stm32f0xx.h"
 #include "Common.h"
-
+#include "BSP.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 #define __DIV(__PCLK, __BAUD)       ((__PCLK*25)/(4*__BAUD))
 #define __DIVMANT(__PCLK, __BAUD)   (__DIV(__PCLK, __BAUD)/100)
@@ -21,8 +21,8 @@
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
-void Usart1Init(const uint32_t RxPin, const uint32_t TxPin, const uint32_t Baud);
-void Usart1Transmit(uint8_t *pTxData, uint16_t size);
-void Usart1ReceiveReady(void);
-eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, uint16_t size);
+void Usart1Init(tBSPType BSPType);
+void Usart1Send(uint8_t *pTxData, uint16_t size);
+void Usart1Reset(void);
+eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, uint16_t size);
 #endif

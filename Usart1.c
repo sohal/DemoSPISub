@@ -7,53 +7,81 @@
 
 /* ***************** Header / include files ( #include ) **********************/
 #include "Usart1.h"
-#include "Gpio.h"
-#include "Timeout.h"
+#include "GPIO.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static uint16_t index =0;
+static uint16_t index = 0U;
+static uint32_t TxPin = 0UL;
+static uint32_t RxPin = 0UL;
+static uint32_t Baud = 0UL;
+static GPIO_TypeDef *pGPIO_USART = NULL;
 /* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
-
 /******************************************************************************/
 /**
-* void Usart1Init(void)
-* @brief Configure USART1 (STM32F031:PA2(TX),PA15(RX)) and initialze variables.
+* void Usart1Init(tBSPType)
+* @brief Configure USART1 according to board type and initialze variables.
 *
 *******************************************************************************/
-void Usart1Init(const uint32_t RxPin, const uint32_t TxPin, const uint32_t Baud)
+void Usart1Init(tBSPType BSPType)
 {
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+  RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
-    GPIOA->AFR[TxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[TxPin >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[RxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[RxPin >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
+	switch(BSPType)
+	{
+		case BSP_Pilot:
+			TxPin = BSP_PILOT_UART_TX_PIN;
+			RxPin = BSP_PILOT_UART_RX_PIN;
+			Baud 	= BSP_PILOT_UART_BAUD;
+			pGPIO_USART = BSP_PILOT_UART_PORT;
+			break;
 
-    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (TxPin * 2));
-    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (TxPin * 2));
-    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)TxPin));
-    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)TxPin));
-    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (TxPin * 2));
-    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (TxPin * 2));
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (TxPin * 2));
-    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (TxPin * 2));
+		case BSP_TorqueSensor:
+			TxPin = BSP_TORQUE_UART_TX_PIN;
+			RxPin = BSP_TORQUE_UART_RX_PIN;
+			Baud 	= BSP_TORQUE_UART_BAUD;
+			pGPIO_USART = BSP_TORQUE_UART_PORT;
+			break;
+		
+		case BSP_NucleoF0x:
+		default:
+			TxPin = BSP_NUCLEO_UART_TX_PIN;
+			RxPin = BSP_NUCLEO_UART_RX_PIN;
+			Baud 	= BSP_NUCLEO_UART_BAUD;
+			pGPIO_USART = BSP_NUCLEO_UART_PORT;
+			break;
+	}
 
-    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (RxPin * 2));
-    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (RxPin * 2));
-    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)RxPin));
-    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)RxPin));
-    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (RxPin * 2));
-    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (RxPin * 2));
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (RxPin * 2));
-    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (RxPin * 2));
+	pGPIO_USART->AFR[TxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
+	pGPIO_USART->AFR[TxPin >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
 
-    RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
-    USART1->BRR = __USART_BRR(8000000UL, Baud);  // 8MHz, 57600 baud
-    USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;  // 8N1
+	pGPIO_USART->AFR[RxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
+	pGPIO_USART->AFR[RxPin >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
+
+	pGPIO_USART->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (TxPin * 2));
+	pGPIO_USART->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (TxPin * 2));
+	pGPIO_USART->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)TxPin));
+	pGPIO_USART->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)TxPin));
+	pGPIO_USART->MODER &= ~(GPIO_MODER_MODER0 << (TxPin * 2));
+	pGPIO_USART->MODER |= ((uint32_t)GPIO_Mode_AF << (TxPin * 2));
+	pGPIO_USART->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (TxPin * 2));
+	pGPIO_USART->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (TxPin * 2));
+
+	pGPIO_USART->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (RxPin * 2));
+	pGPIO_USART->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (RxPin * 2));
+	pGPIO_USART->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)RxPin));
+	pGPIO_USART->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)RxPin));
+	pGPIO_USART->MODER &= ~(GPIO_MODER_MODER0 << (RxPin * 2));
+	pGPIO_USART->MODER |= ((uint32_t)GPIO_Mode_AF << (RxPin * 2));
+	pGPIO_USART->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (RxPin * 2));
+	pGPIO_USART->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (RxPin * 2));
+
+	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+	USART1->BRR = __USART_BRR(8000000UL, Baud);  
+	USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;  // 8N1
 }
 
 /******************************************************************************/
@@ -65,14 +93,14 @@ void Usart1Init(const uint32_t RxPin, const uint32_t TxPin, const uint32_t Baud)
 * @param[in] size number of bytes
 *
 *******************************************************************************/
-void Usart1Transmit(uint8_t *pTxData, uint16_t size)
+void Usart1Send(uint8_t *pTxData, uint16_t size)
 {
-    while(size > 0)
-    {
-        size--;
-        while((USART1->ISR & USART_ISR_TXE) == 0);
-        USART1->TDR = pTxData[size];
-    }
+	while(size > 0)
+	{
+		size--;
+		while((USART1->ISR & USART_ISR_TXE) == 0);
+		USART1->TDR = pTxData[size];
+	}
 }
 
 /******************************************************************************/
@@ -90,7 +118,7 @@ void Usart1Transmit(uint8_t *pTxData, uint16_t size)
 *             eFunction_Timeout if an timeout error occurs.
 *
 *******************************************************************************/
-eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, const uint16_t size)
+eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, const uint16_t size)
 {
 	eFUNCTION_RETURN retVal = eFunction_Timeout;
 	
@@ -110,14 +138,14 @@ eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, const uint16_t size)
 
 /******************************************************************************/
 /**
-* void Usart1ReceiveReady(void)
+* void Usart1Reset(void)
 *
 * @brief Reset receive pointer index
 *
 * @returns    none
 *
 *******************************************************************************/
-void Usart1ReceiveReady(void)
+inline void Usart1Reset(void)
 {
 	index = 0;
 }

@@ -17,7 +17,7 @@
 /* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
 
-#if(CPU_TYPE != STM32F031K6)
+
 /******************************************************************************/
 /**
 * void CanInit(void)
@@ -51,7 +51,7 @@ void CanInit(void)
     GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (GPIO_PIN_12 * 2));
     GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (GPIO_PIN_12 * 2));
     GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (GPIO_PIN_12 * 2));
-    
+    #if 0
     RCC->APB1ENR |= RCC_APB1ENR_CANEN;
   
     // Enter init mode
@@ -74,6 +74,7 @@ void CanInit(void)
 //    CAN->sFilterRegister[0].FR2 = (CAN_ID << 3) | (1 << 2);
     CAN->FFA1R &= ~CAN_FFA1R_FFA0;  // assign filter to FIFO 0
     CAN->FA1R |= CAN_FA1R_FACT0;  // activate filter
-    CAN->FMR &= ~CAN_FMR_FINIT;
+    CAN->FMR &= ~CAN_FMR_FINIT;+
+		#endif
 }
-#endif
+

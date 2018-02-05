@@ -10,34 +10,42 @@
 #include "Gpio.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
-#define PAGE_SIZE_BYTES             0x400
-#define NUM_OF_FLASH_PAGES          28
-#define FLASH_CRC_LENGTH_ADDRESS    0x08007FFC  /**< Store CRC and length */
-
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static uint8_t isErased;
-static volatile uint16_t *ar;
-static volatile uint16_t *vr;
-
+static uint8_t isErased = 0U;
+static volatile uint16_t *ar = NULL;
+static volatile uint16_t *vr = NULL;
+static uint32_t APP_CRC_ADDRESS = 0UL;
+static uint32_t APP_SIZE_ADDRESS = 0UL;
+static uint32_t APP_TOTAL_FLASH_PAGES = 0UL;
 /******************************************************************************/
 /**
 * void FlashInit(void)
 * @brief Initialise the Flash and unlock it.
 *
 *******************************************************************************/
-void FlashInit(void)
+void FlashInit(tBSPType BSPType)
 {
     isErased = 0;
-    ar = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
-    vr = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
+    ar = (uint16_t *)BSP_APPLICATION_START;
+    vr = (uint16_t *)BSP_APPLICATION_START;
     // Unlock Flash
     FLASH->KEYR = FLASH_KEY1;
     FLASH->KEYR = FLASH_KEY2;
     while((FLASH->CR & FLASH_CR_LOCK) != 0);
-    //FlashErase();
+    if(BSPType == BSP_Pilot)
+		{
+			APP_CRC_ADDRESS = 	BSP_PILOT_FLASH_END - 3UL;
+			APP_SIZE_ADDRESS =	BSP_PILOT_FLASH_END - 1UL;
+			APP_TOTAL_FLASH_PAGES = BSP_PILOT_PROGRAM_SECTORS;
+		}else
+		{
+			APP_CRC_ADDRESS = 	BSP_TORQUE_FLASH_END - 3UL;
+			APP_SIZE_ADDRESS =	BSP_TORQUE_FLASH_END - 1UL;
+			APP_TOTAL_FLASH_PAGES = BSP_TORQUE_PROGRAM_SECTORS;
+		}
 }
 
 /******************************************************************************/
@@ -68,7 +76,7 @@ uint8_t FlashWrite(uint8_t* buf, uint16_t size)
             FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
             for(;;);
         }
-        i += 2;
+        i += sizeof(uint16_t);
     }
     return 1; // only 1024 bytes, need to check overflow etc.
 }
@@ -111,8 +119,8 @@ uint8_t FlashVerify(uint8_t* buf, uint16_t size)
 *******************************************************************************/
 uint8_t FlashErase(void)
 {
-    uint32_t flashAdr = (uint32_t)FLASH_PROGRAM_START_ADDRESS;
-    for(uint8_t i = 0; i < NUM_OF_FLASH_PAGES; i++)
+    uint32_t flashAdr = (uint32_t)BSP_APPLICATION_START;
+    for(uint8_t i = 0; i < APP_TOTAL_FLASH_PAGES; i++)
     {
         FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
         FLASH->CR |= FLASH_CR_PER;
@@ -125,10 +133,10 @@ uint8_t FlashErase(void)
             FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
             return 0;
         }
-        flashAdr = flashAdr + PAGE_SIZE_BYTES;
+        flashAdr = flashAdr + BSP_PAGE_SIZE_BYTES;
     }
-    ar = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
-    vr = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
+    ar = (uint16_t *)BSP_APPLICATION_START;
+    vr = (uint16_t *)BSP_APPLICATION_START;
     isErased = 1;
     return 1;
 }
@@ -169,7 +177,7 @@ void FlashLock(void)
 *******************************************************************************/
 uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
 {
-    uint16_t *ad = (uint16_t *)FLASH_CRC_LENGTH_ADDRESS;
+    uint16_t *ad = (uint16_t *)APP_CRC_ADDRESS;
     FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
     /* Write FW CRC */
     FLASH->CR |= FLASH_CR_PG;
@@ -181,7 +189,7 @@ uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
         FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
         return 0;
     }
-    ad++;
+    ad = (uint16_t *)APP_SIZE_ADDRESS;
     /* Write FW length */
     FLASH->CR |= FLASH_CR_PG;
     *ad = (uint16_t)fwParam.u16FWLen;
@@ -208,12 +216,12 @@ uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
 *******************************************************************************/
 uint8_t FlashVerifyFWParam(tFIRMWARE_PARAM fwParam)
 {
-    uint16_t *ad = (uint16_t *)FLASH_CRC_LENGTH_ADDRESS;
+    uint16_t *ad = (uint16_t *)APP_CRC_ADDRESS;
     if(*ad != fwParam.u16FWCRC)
     {
         return 0;
     }
-    ad++;
+    ad = (uint16_t *)APP_SIZE_ADDRESS;
     if(*ad != fwParam.u16FWLen)
     {
         return 0;
@@ -234,25 +242,27 @@ uint8_t FlashVerifyFWParam(tFIRMWARE_PARAM fwParam)
 *******************************************************************************/
 uint8_t FlashVerifyFirmware(void)
 {
-    uint16_t i = 0;
-    uint16_t dataByte;
-    static volatile uint16_t *fwar;
-    uint16_t CRCtemp = 0;
-    fwar = (uint16_t *)FLASH_PROGRAM_START_ADDRESS;
-    /* Read from FLASH_CRC_LENGTH_ADDRESS the firmware crc and length from host */
-    uint16_t crcFromHost = *(uint16_t *)FLASH_CRC_LENGTH_ADDRESS;
-    uint16_t lenFromHost = *(uint16_t *)(FLASH_CRC_LENGTH_ADDRESS + 2);
-    /* Calculate local crc */
-    while(i < lenFromHost) 
-    {
-        /* Read from address of the firmware and calculate crc */
-        dataByte = *fwar++;
-        CRCtemp = CRCCalc16((uint8_t *)&dataByte, 2, CRCtemp);
-        i += 2;
-    }
-    if(CRCtemp == crcFromHost)
-    {
-        return 1;
-    }
-    return 0;
+	volatile uint16_t i = 0;
+	uint32_t temp32 = *(uint32_t *)APP_CRC_ADDRESS;
+	volatile const uint16_t lenFromHost = (uint16_t)(temp32 >> 16U);
+	volatile const uint16_t crcFromHost = (uint16_t)(temp32 & 0x0000FFFFUL);
+	uint16_t dataByte = 0;
+	uint16_t CRCtemp = 0;
+	uint16_t *fwar = (uint16_t*)BSP_ALLBOARD_BOOT_END;
+	/* Read from FLASH_CRC_LENGTH_ADDRESS the firmware crc and length from host */
+
+
+	/* Calculate local crc */
+	while(i < lenFromHost) 
+	{
+		/* Read from address of the firmware and calculate crc */
+		dataByte = *fwar++;
+		CRCtemp = CRCCalc16((uint8_t *)&dataByte, 2, CRCtemp);
+		i += 2;
+	}
+	if(CRCtemp == crcFromHost)
+	{
+		return 1;
+	}
+	return 0;
 }

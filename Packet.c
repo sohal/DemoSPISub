@@ -16,7 +16,7 @@
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static uint16_t expectedSN;
+//static uint16_t expectedSN;
 
 /* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
@@ -26,9 +26,9 @@ static uint16_t expectedSN;
 * void PacketInit(void)
 * @brief Initialize function.
 *******************************************************************************/
-void PacketInit(void)
+inline void PacketInit(void)
 {
-    expectedSN = 0;
+//    expectedSN = 0;
 }
 
 /******************************************************************************/
@@ -44,7 +44,9 @@ void PacketInit(void)
 *******************************************************************************/
 ePACKET_STATUS PacketProcess(tDATA_PACKET packet)
 {
+
     ePACKET_STATUS errStatus = ePACKET_Ok;
+		#if 0
     if(CRCCalc16(&packet.u8Data[0], BLOCK_SIZE, 0) != packet.u16CRC)
     {
         errStatus = ePACKET_CRCError;
@@ -58,5 +60,6 @@ ePACKET_STATUS PacketProcess(tDATA_PACKET packet)
         // CRC and sequence number OK
         expectedSN = packet.u16SeqCnt + 1;
     }
+		#endif
     return errStatus;
 }

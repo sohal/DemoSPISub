@@ -4,7 +4,7 @@
  *      *** Do not modify ! ***
  *
  * Project: 'Bootloader' 
- * Target:  'Target 1' 
+ * Target:  'AllBoards' 
  */
 
 #ifndef RTE_COMPONENTS_H
