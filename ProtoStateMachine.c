@@ -1,11 +1,26 @@
 
-#include "ProtoStateMachine.h"
+/******************************************************************************/
+/**
+* @file ProtocolStateMachine.c
+* @brief Implement State machine for protocol handling of bootloader
+*
+*******************************************************************************/
 
+/* ***************** Header / include files ( #include ) **********************/
+#include "ProtoStateMachine.h"
+/* *************** Constant / macro definitions ( #define ) *******************/
+/* ********************* Type definitions ( typedef ) *************************/
+/* *********************** Global data definitions ****************************/
+/* **************** Global constant definitions ( const ) *********************/
+/* ***************** Modul global data segment ( static ) *********************/
 static tCmdUnion 					Command;
 static tPldUnion 					Payload;
 static tAppDataUnion 			AppData;
 static volatile uint32_t *AppVectorsInFlash 	= (volatile uint32_t *)BSP_APPLICATION_START;
 static volatile uint32_t *AppVectorsInRAM 		= (volatile uint32_t *)BSP_SRAM_START;
+/* *************** Modul global constants ( static const ) ********************/
+/* **************** Local func/proc prototypes ( static ) *********************/
+
 
 /******************************************************************************/
 /**

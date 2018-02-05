@@ -52,7 +52,7 @@ tBSPStruct* BSP_Init(void)
 		}
 	}
 #else
-		gIF.BSP_Type = BSP_Pilot;
+		gIF.BSP_Type = BSP_TorqueSensor;
 #endif
 	
 	switch(gIF.BSP_Type)

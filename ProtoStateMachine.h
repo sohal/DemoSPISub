@@ -1,6 +1,13 @@
+
+/******************************************************************************/
+/**
+* @file ProtocolStateMachine.h
+* @brief Header file for state machine for bootloader protocol
+*
+*******************************************************************************/
 #ifndef PROTO_SM
 #define PROTO_SM
-
+/* ***************** Header / include files ( #include ) **********************/
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -11,8 +18,8 @@
 #include "Packet.h"
 #include "Timer.h"
 #include "BSP.h"
-
-
+/* *************** Constant / macro definitions ( #define ) *******************/
+/* ********************* Type definitions ( typedef ) *************************/
 typedef union myCmd{
 	uint8_t 				bufferCMD[2];
 	eRESPONSE_ID 		returnValue;
@@ -43,7 +50,9 @@ typedef enum {
 	eFlashVerifyApplication,
 	eStartAppCMD
 }tProtoState;
-
+/* ***************** Global data declarations ( extern ) **********************/
+/* ***** External parameter / constant declarations ( extern const ) **********/
+/* ********************** Global func/proc prototypes *************************/
 eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *);
 
 #endif
