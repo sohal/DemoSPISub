@@ -251,6 +251,11 @@ uint8_t FlashVerifyFirmware(void)
 	uint16_t *fwar = (uint16_t*)BSP_ALLBOARD_BOOT_END;
 	/* Read from FLASH_CRC_LENGTH_ADDRESS the firmware crc and length from host */
 
+	/** Check if the length is within flash range or the read flash will fail */
+	if(lenFromHost > (APP_CRC_ADDRESS - BSP_APPLICATION_START))
+	{
+		return 0;
+	}
 
 	/* Calculate local crc */
 	while(i < lenFromHost) 

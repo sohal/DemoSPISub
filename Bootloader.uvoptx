@@ -138,7 +138,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>œòz</Name>
+          <Name>/</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -156,24 +156,7 @@
           <Name>-T0</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint>
-        <Bp>
-          <Number>0</Number>
-          <Type>0</Type>
-          <LineNumber>42</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134218142</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\Flash.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Bootloader\Flash.c\42</Expression>
-        </Bp>
-      </Breakpoint>
+      <Breakpoint/>
       <WatchWindow1>
         <Ww>
           <count>0</count>
@@ -215,7 +198,7 @@
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>2</SubType>
-          <ItemText>0x08007FE0</ItemText>
+          <ItemText>0x08001000</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>
@@ -274,7 +257,7 @@
 
   <Group>
     <GroupName>BSP</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

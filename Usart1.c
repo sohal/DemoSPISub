@@ -19,6 +19,8 @@ static uint32_t RxPin = 0UL;
 static uint32_t Baud = 0UL;
 static GPIO_TypeDef *pGPIO_USART = NULL;
 /* *************** Modul global constants ( static const ) ********************/
+static const uint32_t MASK4 = 0xFU;
+static const uint32_t MASK3 = 0x7U;
 /* **************** Local func/proc prototypes ( static ) *********************/
 /******************************************************************************/
 /**
@@ -55,29 +57,29 @@ void Usart1Init(tBSPType BSPType)
 			break;
 	}
 
-	pGPIO_USART->AFR[TxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
-	pGPIO_USART->AFR[TxPin >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
+	pGPIO_USART->AFR[TxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)TxPin & MASK3) << 2U));
+	pGPIO_USART->AFR[TxPin >> 3] |= ((uint32_t)GPIO_AF_1 << (((uint32_t)TxPin & MASK3) << 2U));
 
-	pGPIO_USART->AFR[RxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
-	pGPIO_USART->AFR[RxPin >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
+	pGPIO_USART->AFR[RxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)RxPin & MASK3) << 2U));
+	pGPIO_USART->AFR[RxPin >> 3] |= ((uint32_t)GPIO_AF_1 << (((uint32_t)RxPin & MASK3) << 2U));
 
-	pGPIO_USART->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (TxPin * 2));
-	pGPIO_USART->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (TxPin * 2));
+	pGPIO_USART->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (TxPin << 1));
+	pGPIO_USART->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (TxPin << 1));
 	pGPIO_USART->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)TxPin));
 	pGPIO_USART->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)TxPin));
-	pGPIO_USART->MODER &= ~(GPIO_MODER_MODER0 << (TxPin * 2));
-	pGPIO_USART->MODER |= ((uint32_t)GPIO_Mode_AF << (TxPin * 2));
-	pGPIO_USART->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (TxPin * 2));
-	pGPIO_USART->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (TxPin * 2));
+	pGPIO_USART->MODER &= ~(GPIO_MODER_MODER0 << (TxPin << 1));
+	pGPIO_USART->MODER |= ((uint32_t)GPIO_Mode_AF << (TxPin << 1));
+	pGPIO_USART->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (TxPin << 1));
+	pGPIO_USART->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (TxPin << 1));
 
-	pGPIO_USART->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (RxPin * 2));
-	pGPIO_USART->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (RxPin * 2));
+	pGPIO_USART->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (RxPin << 1));
+	pGPIO_USART->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (RxPin << 1));
 	pGPIO_USART->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)RxPin));
 	pGPIO_USART->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)RxPin));
-	pGPIO_USART->MODER &= ~(GPIO_MODER_MODER0 << (RxPin * 2));
-	pGPIO_USART->MODER |= ((uint32_t)GPIO_Mode_AF << (RxPin * 2));
-	pGPIO_USART->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (RxPin * 2));
-	pGPIO_USART->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (RxPin * 2));
+	pGPIO_USART->MODER &= ~(GPIO_MODER_MODER0 << (RxPin << 1));
+	pGPIO_USART->MODER |= ((uint32_t)GPIO_Mode_AF << (RxPin << 1));
+	pGPIO_USART->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (RxPin << 1));
+	pGPIO_USART->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (RxPin << 1));
 
 	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
 	USART1->BRR = __USART_BRR(8000000UL, Baud);  
@@ -166,7 +168,7 @@ inline void Usart1DeInit(void)
 	
 	USART1->CR1 &= ~(USART_CR1_TE | USART_CR1_RE | USART_CR1_UE);  
 	
-	pGPIO_USART->AFR[TxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)TxPin) & (uint32_t)0x07) * 4));
+	pGPIO_USART->AFR[TxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)TxPin & MASK3) << 2U));
 	
-	pGPIO_USART->AFR[RxPin >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)RxPin) & (uint32_t)0x07) * 4));
+	pGPIO_USART->AFR[RxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)RxPin & MASK3) << 2U));
 }
