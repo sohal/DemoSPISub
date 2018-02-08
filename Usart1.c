@@ -82,7 +82,7 @@ void Usart1Init(tBSPType BSPType)
 	pGPIO_USART->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (RxPin << 1));
 
 	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
-	USART1->BRR = __USART_BRR(8000000UL, Baud);  
+	USART1->BRR = __USART_BRR(SystemCoreClock, Baud);  
 	USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;  // 8N1
 }
 

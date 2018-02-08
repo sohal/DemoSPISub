@@ -43,6 +43,12 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 	static uint16_t crcPrevious = 0x0000;
 	static uint32_t tickCounter = 0U;
 	static uint32_t stickyTimer = 0U;
+	static uint32_t ClockMultiplier = 1;
+	
+	if(pBSP->BSP_Type == BSP_TorqueSensor)
+	{
+		ClockMultiplier = 8;
+	}
 	
 	switch(stateNow)
 	{
@@ -58,7 +64,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 				}
 			}else
 			{
-				if(tickCounter > TIMEOUT_StartApp)
+				if(tickCounter > (TIMEOUT_StartApp * ClockMultiplier))
 				{
 					stateNext = eFlashVerifyApplication;
 					tickCounter = 0;
@@ -118,7 +124,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 					{
 						if(Payload.packet.u8Data[1] == 0xFB)
 						{
-							if(tickCounter > 3000)
+							if(tickCounter > (3000 * ClockMultiplier))
 							{
 								stateNext = eCrcCMD;
 								AppData.Firmware.u16FWCRC = 0xFFFF;
@@ -201,11 +207,20 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 				Command.returnValue = eRES_AppCrcErr;
 				stateNext = eDefaultState;
 			}
-			pBSP->pSend(Command.bufferCMD,2);
+			pBSP->pSend(Command.bufferCMD, 2);
 			break;
 		
 		case eStartAppCMD:
 			/* Lock flash from further write */
+//			if(pBSP->BSP_Type == BSP_TorqueSensor)
+//			{
+				stickyTimer = TIMEOUT_EndOfComm * ClockMultiplier;
+				do{
+				}while(stickyTimer--);
+//			}
+			
+			pBSP->pDeInit();
+			
       FlashLock();
 			/* Remap Application Vectors */
 			for(int i = 0; i < BSP_VECTOR_SIZE_WORDS; i++)
@@ -236,7 +251,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 	{
 		stickyTimer++;
 		/* If the timeout has expired, we reboot the system */
-		if(stickyTimer > TIMEOUT_3s)
+		if(stickyTimer > (TIMEOUT_3s * ClockMultiplier))
 		{
 			stateNext = eDefaultState;
 			NVIC_SystemReset();

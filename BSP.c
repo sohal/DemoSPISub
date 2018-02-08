@@ -1,6 +1,8 @@
 #include "BSP.h"
 
 static tBSPStruct gIF;
+static void TorqueSensorCoreClockInit(void);
+static void TorqueSensorCoreClockDeInit(void);
 
 tBSPStruct* BSP_Init(void)
 {
@@ -70,7 +72,8 @@ tBSPStruct* BSP_Init(void)
 			gIF.pRecv 	= &Usart1Recv;
 			gIF.pSend 	= &Usart1Send;
 			gIF.pReset 	= &Usart1Reset;
-			gIF.pDeInit = &Usart1DeInit;	
+			gIF.pDeInit = &Usart1DeInit;
+			TorqueSensorCoreClockInit();
 			break;
 		
 		case BSP_ExtWatchdog:
@@ -93,8 +96,11 @@ tBSPStruct* BSP_Init(void)
 			gIF.pInit = NULL;
 			break;
 	}
+  
+	SystemCoreClockUpdate();
 	
 	gIF.pInit(gIF.BSP_Type);
+	
 	FlashInit(gIF.BSP_Type);
 	
 	return(&gIF);
@@ -102,6 +108,44 @@ tBSPStruct* BSP_Init(void)
 
 void BSP_DeInit(void)
 {
+	if(gIF.BSP_Type == BSP_TorqueSensor)
+	{
+		TorqueSensorCoreClockDeInit();
+	}
+	//gif.pDeInit();
 	
 }
 
+void TorqueSensorCoreClockInit(void)
+{
+    RCC->CR |= ((uint32_t)RCC_CR_HSION);                       /* Enable HSI */
+    while ((RCC->CR & RCC_CR_HSIRDY) == 0);                  /* Wait for HSI Ready */
+
+    RCC->CFGR = RCC_CFGR_SW_HSI;                             /* HSI is system clock */
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI);  /* Wait for HSI used as system clock */
+
+    FLASH->ACR  = FLASH_ACR_PRFTBE;                          /* Enable Prefetch Buffer */
+    FLASH->ACR |= FLASH_ACR_LATENCY;                         /* Flash 1 wait state */
+
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;                         /* HCLK = SYSCLK */
+    RCC->CFGR |= RCC_CFGR_PPRE_DIV1;                         /* PCLK = HCLK */
+
+    RCC->CR &= ~RCC_CR_PLLON;                                /* Disable PLL */
+
+    /*  PLL configuration:  = HSI/2 * 8 = 32 MHz */
+    RCC->CFGR &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMUL);
+    RCC->CFGR |=  (RCC_CFGR_PLLSRC_HSI_DIV2 | RCC_CFGR_PLLMUL16);  /* 16 for 64Mhz */
+
+    RCC->CR |= RCC_CR_PLLON;                                 /* Enable PLL */
+    while((RCC->CR & RCC_CR_PLLRDY) == 0) __NOP();           /* Wait till PLL is ready */
+
+    RCC->CFGR &= ~RCC_CFGR_SW;                               /* Select PLL as system clock source */
+    RCC->CFGR |=  RCC_CFGR_SW_PLL;
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);  /* Wait till PLL is system clock src */
+}
+
+void TorqueSensorCoreClockDeInit(void)
+{
+	//ToDo
+	//SystemClockUpdate();
+}
