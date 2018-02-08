@@ -1,4 +1,10 @@
-# The Bootloader is project for Keil Microvision v5
+# Bootloader project for Keil µVision 5
+
+There are two projects in this folder.
+
+Use Boot for bootloader that is integrated with Torque sensor and Pilot hardware
+
+Use Bootloader for bootloader that is working as per Ervin's setup.
 
 ## Compiler settings of Bootloader
 ## Assembler settings of Bootloader
