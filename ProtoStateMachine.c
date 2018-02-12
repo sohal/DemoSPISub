@@ -39,8 +39,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 	eFUNCTION_RETURN retVal = eFunction_Ok;
 	static tProtoState stateNow, stateNext;
 	static uint16_t pktCounter;
-	static uint16_t crcCalculated = 0xFFFF;
-	static uint16_t crcPrevious = 0x0000;
+	uint16_t crcCalculated = 0U;
 	static uint32_t tickCounter = 0U;
 	static uint32_t stickyTimer = 0U;
 		
@@ -134,7 +133,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 			break;
 		
 		case ePayloadCheck:
-			crcCalculated = CRCCalc16(Payload.packet.u8Data,64, crcPrevious); 
+			crcCalculated = CRCCalc16(Payload.packet.u8Data,64, 0); 
 				if(crcCalculated == Payload.packet.u16CRC)
 				{
 					if(FlashWrite(Payload.bufferPLD, BLOCK_SIZE))
@@ -143,7 +142,6 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             {
 							Command.returnValue = eRES_OK;
 							pktCounter++;
-							crcPrevious = crcCalculated;
             }else
            {
 							Command.returnValue = eRES_Abort;
