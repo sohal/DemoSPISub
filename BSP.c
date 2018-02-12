@@ -56,9 +56,18 @@ tBSPStruct* BSP_Init(void)
 			}
 		}
 	}
-
-	gIF.BSP_Type = BSP_TorqueSensor;
 	
+#ifdef SELECT_TORQUE
+	gIF.BSP_Type = BSP_TorqueSensor;
+	#warning Torque Sensor is selected 
+#else
+	#ifdef SELECT_PILOT
+	gIF.BSP_Type = BSP_Pilot;
+	#warning Pilot is selected
+	#else
+	#error Select appropriate board
+	#endif
+#endif
 	switch(gIF.BSP_Type)
 	{
 		case BSP_Pilot:
