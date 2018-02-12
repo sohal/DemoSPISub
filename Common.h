@@ -57,6 +57,10 @@ typedef struct  {
 	eFUNCTION_RETURN (*pRecv)(uint8_t *, uint16_t);
 	void (*pReset)(void);
 	void (*pDeInit)(void);
+	uint32_t ThreeSecondsTicks;
+	uint32_t AppStartTicks;
+	uint32_t CommDoneTicks;
+	uint32_t TwoBytesTicks;
 }tBSPStruct;
 
 

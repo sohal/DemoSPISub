@@ -9,8 +9,7 @@
 #include "Flash.h"
 
 #define TIMEOUT_3s									(300000UL)
-#define TIMEOUT_StartApp						(TIMEOUT_3s - 4500UL)			
-#define TIMEOUT_EndOfComm						(TIMEOUT_StartApp - 15500UL)
+#define BSP_ALLBOARD_HSI_FREQUENCY	(8000000UL)
 
 
 #define DBGMCU_ID_F04x							(0x00000445UL)
@@ -46,7 +45,8 @@
 #define BSP_TORQUE_UART_PORT				GPIOA
 #define BSP_TORQUE_UART_TX_PIN			2U
 #define BSP_TORQUE_UART_RX_PIN			3U
-#define BSP_TORQUE_UART_BAUD				57600U
+#define BSP_TORQUE_UART_BAUD				1125000U
+#define BSP_TORQUE_RCC_MULTIPLIER		(8UL)
 
 #define BSP_NUCLEO_PROGRAM_END			(BSP_APPLICATION_START + 0x00007FFFUL)
 #define BSP_NUCLEO_PROGRAM_SECTORS	((BSP_NUCLEO_PROGRAM_END + 1UL - BSP_ALLBOARD_BOOT_SIZE) / BSP_PAGE_SIZE_BYTES)
@@ -59,6 +59,11 @@
 #define BSP_CHECK_PIN_6							6
 #define BSP_CHECK_PIN_7							7
 
+typedef struct timeouts{
+	uint32_t ThreeSeconds;
+	uint32_t StartApp;
+	uint32_t EndOfComm;
+}tTimeouts;
 
 tBSPStruct* BSP_Init(void);
 void BSP_DeInit(void);

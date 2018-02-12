@@ -6,14 +6,17 @@ static void TorqueSensorCoreClockDeInit(void);
 
 tBSPStruct* BSP_Init(void)
 {
-	gIF.pInit 		= NULL;
-	gIF.pDeInit 	= NULL;
-	gIF.pSend 		= NULL;
-	gIF.pReset 		= NULL;
-	gIF.BSP_Type 	= BSP_UnKnown;
+	gIF.pInit 						= NULL;
+	gIF.pDeInit 					= NULL;
+	gIF.pSend 						= NULL;
+	gIF.pReset 						= NULL;
+	gIF.BSP_Type 					= BSP_UnKnown;
+	gIF.ThreeSecondsTicks	= TIMEOUT_3s;
+	gIF.AppStartTicks		  = gIF.ThreeSecondsTicks - 4500UL;
+	gIF.CommDoneTicks 		= gIF.AppStartTicks - 15500UL;
+	gIF.TwoBytesTicks			= 3000UL;
+	uint32_t temp_u32 		= 0UL;
 
-#if 0
-	uint32_t temp_u32;
 	temp_u32 = DBGMCU->IDCODE;
 	
 	if((temp_u32 & DBGMCU_IDCODE_DEV_ID) != DBGMCU_ID_F03x)
@@ -53,9 +56,8 @@ tBSPStruct* BSP_Init(void)
 			}
 		}
 	}
-#else
-		gIF.BSP_Type = BSP_TorqueSensor;
-#endif
+
+	gIF.BSP_Type = BSP_TorqueSensor;
 	
 	switch(gIF.BSP_Type)
 	{
@@ -97,7 +99,18 @@ tBSPStruct* BSP_Init(void)
 			break;
 	}
   
+	/* Let's update the global SystemCoreClock variable just in case the system
+	 * frequency has changed. Mandatory for calculations of delay for bootloader
+	 * timeouts that are solely dependent on system ticks
+	 */
 	SystemCoreClockUpdate();
+	/* Now calculate by what factor has the system changed it's core clock */
+	temp_u32 = ( SystemCoreClock / BSP_ALLBOARD_HSI_FREQUENCY );
+	
+	gIF.AppStartTicks 		*= temp_u32;
+	gIF.CommDoneTicks 		*= temp_u32;
+	gIF.ThreeSecondsTicks *= temp_u32;
+	gIF.TwoBytesTicks			*= temp_u32;
 	
 	gIF.pInit(gIF.BSP_Type);
 	
