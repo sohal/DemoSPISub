@@ -208,9 +208,10 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 			break;
 		
 		case eStartAppCMD:
-			stickyTimer = pBSP->CommDoneTicks;
+			/** Busy wait for some time */
+			tickCounter = pBSP->CommDoneTicks;
 			do{
-			}while(stickyTimer--);
+			}while(tickCounter--);
 		
 			pBSP->pDeInit();
 				
