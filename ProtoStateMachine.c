@@ -134,24 +134,29 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 		
 		case ePayloadCheck:
 			crcCalculated = CRCCalc16(Payload.packet.u8Data,64, 0); 
-				if(crcCalculated == Payload.packet.u16CRC)
+			if(crcCalculated == Payload.packet.u16CRC)
+			{
+				if(FlashWrite(Payload.bufferPLD, BLOCK_SIZE))
 				{
-					if(FlashWrite(Payload.bufferPLD, BLOCK_SIZE))
-          {
-						if(FlashVerify(Payload.bufferPLD, BLOCK_SIZE))
-            {
-							Command.returnValue = eRES_OK;
-							pktCounter++;
-            }else
-           {
-							Command.returnValue = eRES_Abort;
-            }
+					if(FlashVerify(Payload.bufferPLD, BLOCK_SIZE))
+					{
+						Command.returnValue = eRES_OK;
+						pktCounter++;
+					}else
+					{
+						Command.returnValue = eRES_Abort;
 					}
-				stateNext = ePayloadReceive;
-				Payload.packet.u16SeqCnt = 0xFFFF;
-				Payload.packet.u16CRC = 0xFFFF;
-				pBSP->pSend(Command.bufferCMD, 2);
+				}
+			}else
+			{
+				Command.returnValue = eRES_Error;
 			}
+
+			stateNext = ePayloadReceive;
+			Payload.packet.u16SeqCnt = 0xFFFF;
+			Payload.packet.u16CRC = 0xFFFF;
+			pBSP->pSend(Command.bufferCMD, 2);
+			
 			break;
 
 		case eCrcCMD:
@@ -210,11 +215,11 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 			pBSP->pDeInit();
 				
 			/* Lock flash from further write */				
-      FlashLock();
+			FlashLock();
 			/* Remap Application Vectors */
 			for(int i = 0; i < BSP_VECTOR_SIZE_WORDS; i++)
 			{
-        AppVectorsInRAM[i] = AppVectorsInFlash[i];
+				AppVectorsInRAM[i] = AppVectorsInFlash[i];
 			}
 			/* Setup controller mode to consider vectors from RAM */
 			RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;
