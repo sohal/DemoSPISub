@@ -241,7 +241,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 	{
 		stickyTimer++;
 		/* If the timeout has expired, we reboot the system */
-		if(stickyTimer > pBSP->ThreeSecondsTicks)
+		if(stickyTimer > pBSP->BootTimeoutTicks)
 		{
 			stateNext = eDefaultState;
 			NVIC_SystemReset();

@@ -11,8 +11,8 @@ tBSPStruct* BSP_Init(void)
 	gIF.pSend 						= NULL;
 	gIF.pReset 						= NULL;
 	gIF.BSP_Type 					= BSP_UnKnown;
-	gIF.ThreeSecondsTicks	= TIMEOUT_3s;
-	gIF.AppStartTicks		  = gIF.ThreeSecondsTicks - 4500UL;
+	gIF.BootTimeoutTicks	= TIMEOUT_3s;
+	gIF.AppStartTicks		  = gIF.BootTimeoutTicks - 4500UL;
 	gIF.CommDoneTicks 		= gIF.AppStartTicks - 15500UL;
 	gIF.TwoBytesTicks			= 3000UL;
 	uint32_t temp_u32 		= 0UL;
@@ -118,7 +118,7 @@ tBSPStruct* BSP_Init(void)
 	
 	gIF.AppStartTicks 		*= temp_u32;
 	gIF.CommDoneTicks 		*= temp_u32;
-	gIF.ThreeSecondsTicks *= temp_u32;
+	gIF.BootTimeoutTicks  *= temp_u32;
 	gIF.TwoBytesTicks			*= temp_u32;
 	
 	gIF.pInit(gIF.BSP_Type);
