@@ -109,19 +109,22 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 				stateNext = ePayloadCheck;
 				tickCounter = 0;
 			}
-			if(Payload.packet.u16CRC == 0xFFFF)
+			if(Payload.packet.u16CRC == 0xFFFFU)
 			{
-				if(Payload.packet.u16SeqCnt == 0xFFFF)
+				if(Payload.packet.u16SeqCnt == 0xFFFFU)
 				{
-					if(Payload.packet.u8Data[0] == 0x04)
+					if(Payload.packet.u8Data[0] == (uint8_t)(eCMD_WriteCRC & 0x00FFU))
 					{
-						if(Payload.packet.u8Data[1] == 0xFB)
+						if(Payload.packet.u8Data[1] == (uint8_t)((eCMD_WriteCRC >> 8) & 0x00FFU))
 						{
 							if(tickCounter > pBSP->TwoBytesTicks)
 							{
-								stateNext = eCrcCMD;
-								AppData.Firmware.u16FWCRC = 0xFFFF;
-								AppData.Firmware.u16FWLen = 0xFFFF;
+								AppData.Firmware.u16FWCRC = 0xFFFFU;
+								AppData.Firmware.u16FWLen = 0xFFFFU;
+								stateNext = eWriteAppCRC;
+								pBSP->pReset();
+								Command.returnValue = eRES_OK;
+								pBSP->pSend(Command.bufferCMD,2);
 							}else
 							{
 								tickCounter++;
@@ -153,24 +156,16 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 			}
 
 			stateNext = ePayloadReceive;
-			Payload.packet.u16SeqCnt = 0xFFFF;
-			Payload.packet.u16CRC = 0xFFFF;
+			Payload.packet.u16SeqCnt = 0xFFFFU;
+			Payload.packet.u16CRC = 0xFFFFU;
 			pBSP->pSend(Command.bufferCMD, 2);
 			
 			break;
 
-		case eCrcCMD:
-			stateNext = eWriteApplicationLen;
-			pBSP->pReset();
-			Command.returnValue = eRES_OK;
-			pBSP->pSend(Command.bufferCMD,2);
-			break;
-
-		case eWriteApplicationLen:
+		case eWriteAppCRC:
 			retVal = pBSP->pRecv(AppData.bufferData, 4);
 			if(retVal == eFunction_Ok)
-			{
-				
+			{				
 				Command.returnValue = eRES_Abort;
 				if(FlashWriteFWParam(AppData.Firmware))
 				{

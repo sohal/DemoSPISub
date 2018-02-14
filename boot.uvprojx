@@ -334,7 +334,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>SELECT_TORQUE</Define>
+              <Define>SELECT_PILOT</Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
@@ -390,6 +390,16 @@
               <FileType>1</FileType>
               <FilePath>.\BSP.c</FilePath>
             </File>
+            <File>
+              <FileName>Flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>CRC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CRC.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -399,16 +409,6 @@
               <FileName>ProtoStateMachine.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\ProtoStateMachine.c</FilePath>
-            </File>
-            <File>
-              <FileName>CRC.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CRC.c</FilePath>
-            </File>
-            <File>
-              <FileName>Flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Flash.c</FilePath>
             </File>
           </Files>
         </Group>

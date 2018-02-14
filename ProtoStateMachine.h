@@ -38,14 +38,11 @@ typedef union myAppData{
 
 typedef enum {
 	eDefaultState = 0,
-	eBootCMD,
 	eFlashEraseCMD,
 	eWriteMemory,
 	ePayloadReceive,
 	ePayloadCheck,
-	eWriteApplication,
-	eCrcCMD,
-	eWriteApplicationLen,
+	eWriteAppCRC,
 	eFinishUpdate,
 	eFlashVerifyApplication,
 	eStartAppCMD

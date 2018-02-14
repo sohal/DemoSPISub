@@ -24,7 +24,6 @@ void FlashInit(tBSPType BSPType);
 uint8_t FlashWrite(uint8_t* buf, uint16_t size);
 uint8_t FlashVerify(uint8_t* buf, uint16_t size);
 uint8_t FlashErase(void);
-uint8_t FlashIsErased(void);
 void FlashLock(void);
 uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam);
 uint8_t FlashVerifyFWParam(tFIRMWARE_PARAM fwParam);

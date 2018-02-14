@@ -14,7 +14,6 @@
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static uint8_t isErased = 0U;
 static volatile uint16_t *ar = NULL;
 static volatile uint16_t *vr = NULL;
 static uint32_t APP_CRC_ADDRESS = 0UL;
@@ -28,7 +27,6 @@ static uint32_t APP_TOTAL_FLASH_PAGES = 0UL;
 *******************************************************************************/
 void FlashInit(tBSPType BSPType)
 {
-    isErased = 0;
     ar = (uint16_t *)BSP_APPLICATION_START;
     vr = (uint16_t *)BSP_APPLICATION_START;
     // Unlock Flash
@@ -137,19 +135,7 @@ uint8_t FlashErase(void)
     }
     ar = (uint16_t *)BSP_APPLICATION_START;
     vr = (uint16_t *)BSP_APPLICATION_START;
-    isErased = 1;
     return 1;
-}
-
-/******************************************************************************/
-/**
-* uint8_t FlashIsErased(void)
-* @brief Check if flash has been erased.
-*
-*******************************************************************************/
-uint8_t FlashIsErased(void)
-{
-    return isErased;
 }
 
 /******************************************************************************/
