@@ -11,10 +11,10 @@ tBSPStruct* BSP_Init(void)
 	gIF.pSend 						= NULL;
 	gIF.pReset 						= NULL;
 	gIF.BSP_Type 					= BSP_UnKnown;
-	gIF.BootTimeoutTicks	= TIMEOUT_3s;
-	gIF.AppStartTicks		  = gIF.BootTimeoutTicks - 4500UL;
-	gIF.CommDoneTicks 		= gIF.AppStartTicks - 15500UL;
-	gIF.TwoBytesTicks			= 3000UL;
+	gIF.BootTimeoutTicks	= BootTIMEOUT;
+	gIF.AppStartTicks		  = BootTIMEOUT - 100000UL;
+	gIF.CommDoneTicks 		= 10000UL;
+	gIF.TwoBytesTicks			= 300UL;
 	uint32_t temp_u32 		= 0UL;
 
 	temp_u32 = DBGMCU->IDCODE;

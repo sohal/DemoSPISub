@@ -8,7 +8,7 @@
 #include "Can.h"
 #include "Flash.h"
 
-#define TIMEOUT_3s									(300000UL)
+#define BootTIMEOUT									(300000UL)
 #define BSP_ALLBOARD_HSI_FREQUENCY	(8000000UL)
 
 
