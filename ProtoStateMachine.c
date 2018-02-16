@@ -74,14 +74,16 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 			{
 				if(Command.receivedvalue == eCMD_EraseFlash)
 				{
-					FlashErase();
-					stateNext = eWriteMemory;
-					Command.returnValue = eRES_OK;
+					if(FlashErase())
+					{
+						stateNext = eWriteMemory;
+						Command.returnValue = eRES_OK;
+					}else
+					{
+						Command.returnValue = eRES_Error;
+					}
 					pBSP->pSend(Command.bufferCMD, 2);
 				}
-			}else
-			{
-				stateNext = eFlashEraseCMD;
 			}
 			break;
 		
@@ -91,14 +93,11 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 				if(Command.receivedvalue == eCMD_WriteMemory)
 				{
 					stateNext = ePayloadReceive;
-					Payload.packet.u16SeqCnt = 0xFFFF;
+					Payload.packet.u16SeqCnt = 0xFFFFU;
 					pktCounter = 0;
 					Command.returnValue = eRES_OK;
 					pBSP->pSend(Command.bufferCMD, 2);
 				}
-			}else
-			{
-				stateNext = eWriteMemory;
 			}
 			break;
 			
@@ -109,6 +108,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 				stateNext = ePayloadCheck;
 				tickCounter = 0;
 			}
+			
 			if(Payload.packet.u16CRC == 0xFFFFU)
 			{
 				if(Payload.packet.u16SeqCnt == 0xFFFFU)
@@ -139,16 +139,10 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 			crcCalculated = CRCCalc16(Payload.packet.u8Data,64, 0); 
 			if(crcCalculated == Payload.packet.u16CRC)
 			{
-				if(FlashWrite(Payload.bufferPLD, BLOCK_SIZE))
+				if(FlashWrite(Payload.bufferPLD, BLOCK_SIZE, pktCounter))
 				{
-					if(FlashVerify(Payload.bufferPLD, BLOCK_SIZE))
-					{
 						Command.returnValue = eRES_OK;
 						pktCounter++;
-					}else
-					{
-						Command.returnValue = eRES_Abort;
-					}
 				}
 			}else
 			{
@@ -165,16 +159,13 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 		case eWriteAppCRC:
 			retVal = pBSP->pRecv(AppData.bufferData, 4);
 			if(retVal == eFunction_Ok)
-			{				
-				Command.returnValue = eRES_Abort;
+			{	
+				Command.returnValue = eRES_Error;
 				if(FlashWriteFWParam(AppData.Firmware))
 				{
-					if(FlashVerifyFWParam(AppData.Firmware))
-					{
-						stateNext = eFinishUpdate;
-						pBSP->pReset();
-						Command.returnValue = eRES_OK;
-					}
+					stateNext = eFinishUpdate;
+					pBSP->pReset();
+					Command.returnValue = eRES_OK;
 				}
 				pBSP->pSend(Command.bufferCMD,2);
 			}
