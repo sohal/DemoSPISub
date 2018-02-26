@@ -19,8 +19,7 @@ static uint32_t RxPin = 0UL;
 static uint32_t Baud = 0UL;
 static GPIO_TypeDef *pGPIO_USART = NULL;
 /* *************** Modul global constants ( static const ) ********************/
-static const uint32_t MASK4 = 0xFU;
-static const uint32_t MASK3 = 0x7U;
+
 /* **************** Local func/proc prototypes ( static ) *********************/
 /******************************************************************************/
 /**
@@ -88,7 +87,7 @@ void Usart1Init(tBSPType BSPType)
 
 /******************************************************************************/
 /**
-* void Usart1Transmit(uint8_t *pTxData, uint16_t size)
+* void Usart1Send(uint8_t *pTxData, uint16_t size)
 * @brief Implement usart1 send.
 *
 * @param[in] pTxData pointer to the data to be transmitted
@@ -107,7 +106,7 @@ void Usart1Send(uint8_t *pTxData, uint16_t size)
 
 /******************************************************************************/
 /**
-* eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, uint16_t size)
+* eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, uint16_t size)
 *
 * @brief Read from UART. It will retry 3 times in case of failure.
 *

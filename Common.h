@@ -40,6 +40,8 @@ typedef enum
 #define MASK_BIT_13				(1UL <<  13U)
 #define MASK_BIT_14				(1UL <<  14U)
 #define MASK_BIT_15				(1UL <<  15U)
+#define MASK4 						(0xFU)
+#define MASK3 						(0x7U)
 
 typedef enum bsptype {
 	BSP_UnKnown,

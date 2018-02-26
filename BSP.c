@@ -65,7 +65,8 @@ tBSPStruct* BSP_Init(void)
 	gIF.BSP_Type = BSP_Pilot;
 	#warning Pilot is selected
 	#else
-	#error Select appropriate board
+	gIF.BSP_Type = BSP_STM32F042;
+	#warning CAN bus selected
 	#endif
 #endif
 	switch(gIF.BSP_Type)
@@ -103,6 +104,13 @@ tBSPStruct* BSP_Init(void)
 			break;
 		
 		case BSP_STM32F042:
+			gIF.pInit		= &CanInit;
+			gIF.pRecv 	= &CanRecv;
+			gIF.pSend 	= &CanSend;
+			gIF.pReset 	= &CanReset;
+			gIF.pDeInit = &CanDeInit;
+			break;
+		
 		default:
 			gIF.pInit = NULL;
 			break;
