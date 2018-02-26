@@ -411,9 +411,9 @@
           <GroupName>Protocol</GroupName>
           <Files>
             <File>
-              <FileName>ProtoStateMachine.c</FileName>
+              <FileName>Protocol.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\ProtoStateMachine.c</FilePath>
+              <FilePath>.\Protocol.c</FilePath>
             </File>
           </Files>
         </Group>

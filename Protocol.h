@@ -1,40 +1,55 @@
+
 /******************************************************************************/
 /**
 * @file Protocol.h
-* @brief Implementation of the protocol layer
+* @brief Header file for state machine for bootloader protocol
 *
 *******************************************************************************/
-#ifndef PROTOCOL_H
-#define PROTOCOL_H
+#ifndef PROTO_SM
+#define PROTO_SM
 /* ***************** Header / include files ( #include ) **********************/
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
+#include "Common.h"
+#include "Usart1.h"
 #include "Command.h"
-
+#include "Flash.h"
+#include "Packet.h"
+#include "Timer.h"
+#include "BSP.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
-/**
-* @enum eSTATES
-* @brief Bootloader states
-*/
-typedef enum
-{
-    eSTATE_WaitForCmd     = 0,/**< Wait for "ready" command from the bootloader */
-    eSTATE_BootloaderMode = 1,
-    eSTATE_WaitForPacket  = 2,
-    eSTATE_OKtoSender     = 3,
-    eSTATE_WritePacket    = 4,
-    eSTATE_ReceivePacket  = 5,
-    eSTATE_WriteCRC       = 6,
-    eSTATE_VerifyCRC      = 7,      
-    eSTATE_Error          = 8,
-    eSTATE_ExitBootloader = 9
-}eSTATES;
+typedef union myCmd{
+	uint8_t 				bufferCMD[2];
+	eRESPONSE_ID 		returnValue;
+	eCOMMAND_ID 		receivedvalue;
+}tCmdUnion;
 
+typedef union myPayload{
+	tDATA_PACKET 		packet;
+	uint8_t 				bufferPLD[68];
+}tPldUnion;
+
+typedef union myAppData{
+	tFIRMWARE_PARAM Firmware;
+	uint8_t 				bufferData[4];
+}tAppDataUnion;
+
+typedef enum {
+	eDefaultState = 0,
+	eFlashEraseCMD,
+	eWriteMemory,
+	ePayloadReceive,
+	ePayloadCheck,
+	eWriteAppCRC,
+	eFinishUpdate,
+	eFlashVerifyApplication,
+	eStartAppCMD
+}tProtoState;
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
-void ProtocolInit(void);
-void ProtocolStateProcess(void);
+eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *);
 
 #endif
-
-/* end of Protocol.h */

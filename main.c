@@ -5,7 +5,7 @@
 *
 ******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
-#include "ProtoStateMachine.h"
+#include "Protocol.h"
 #include "BSP.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
