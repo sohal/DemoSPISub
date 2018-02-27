@@ -29,14 +29,9 @@ void CanInit(tBSPType BSPType)
 {	
   RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
-//	switch(BSPType)
-//	{
-//		default:
-			TxPin = BSP_BASE_CAN_TX_PIN;
-			RxPin = BSP_BASE_CAN_RX_PIN;
-			pGPIO_CAN = BSP_BASE_CAN_PORT;
-//			break;
-//	}
+  TxPin = BSP_BASE_CAN_TX_PIN;
+  RxPin = BSP_BASE_CAN_RX_PIN;
+  pGPIO_CAN = BSP_BASE_CAN_PORT;
   
 	pGPIO_CAN->AFR[TxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)TxPin & MASK3) << 2U));
 	pGPIO_CAN->AFR[TxPin >> 3] |= ((uint32_t)GPIO_AF_1 << (((uint32_t)TxPin & MASK3) << 2U));
