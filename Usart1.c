@@ -7,7 +7,8 @@
 
 /* ***************** Header / include files ( #include ) **********************/
 #include "Usart1.h"
-
+#if defined (SELECT_TORQUE) || defined (SELECT_PILOT)
+	
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
@@ -171,3 +172,6 @@ inline void Usart1DeInit(void)
 	
 	pGPIO_USART->AFR[RxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)RxPin & MASK3) << 2U));
 }
+
+#endif
+

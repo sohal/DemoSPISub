@@ -57,17 +57,17 @@ tBSPStruct* BSP_Init(void)
 		}
 	}
 	
-#ifdef SELECT_TORQUE
+#if defined (SELECT_TORQUE)
 	gIF.BSP_Type = BSP_TorqueSensor;
 	#warning Torque Sensor is selected 
-#else
-	#ifdef SELECT_PILOT
+#elif defined (SELECT_PILOT)
 	gIF.BSP_Type = BSP_Pilot;
 	#warning Pilot is selected
-	#else
+#elif defined (SELECT_CAN)
 	gIF.BSP_Type = BSP_STM32F042;
 	#warning CAN bus selected
-	#endif
+#else
+	#error Select a valid board type
 #endif
 	switch(gIF.BSP_Type)
 	{

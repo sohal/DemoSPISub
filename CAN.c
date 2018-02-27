@@ -7,6 +7,7 @@
 
 /* ***************** Header / include files ( #include ) **********************/
 #include "Can.h"
+#if defined (SELECT_CAN)
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
@@ -198,3 +199,4 @@ inline void CanDeInit(void)
 	
 	pGPIO_CAN->AFR[RxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)RxPin & MASK3) << 2U));
 }
+#endif

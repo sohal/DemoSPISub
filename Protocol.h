@@ -16,7 +16,6 @@
 #include "Command.h"
 #include "Flash.h"
 #include "Packet.h"
-#include "Timer.h"
 #include "BSP.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
