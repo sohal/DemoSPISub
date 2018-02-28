@@ -27,7 +27,8 @@ static GPIO_TypeDef *pGPIO_CAN = NULL;
 *******************************************************************************/
 void CanInit(tBSPType BSPType)
 {	
-
+	uint32_t canWait;
+	
   RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
   TxPin = BSP_BASE_CAN_TX_PIN;
@@ -61,7 +62,16 @@ void CanInit(tBSPType BSPType)
 	RCC->APB1ENR |= RCC_APB1ENR_CANEN;
 
 	CAN->MCR = CAN_MCR_INRQ;
-  while((CAN->MSR & CAN_MSR_INAK) == 0);
+	
+	/** Setup busy wait timer */
+	canWait = BootTIMEOUT;
+  while((CAN->MSR & CAN_MSR_INAK) == 0)
+	{
+		if(!(canWait--))
+		{
+			return;		/** Return if the busy wait timer expires */						
+		}	
+	}
 
   CAN->MCR |= CAN_MCR_NART;
   
@@ -77,11 +87,18 @@ void CanInit(tBSPType BSPType)
   CAN->FMR &= ~CAN_FMR_FINIT;
 	CAN->IER |= CAN_IER_FMPIE0;
 	CAN->RF0R |= CAN_RF0R_RFOM0;
-  // Leave init mode
 
   CAN->MCR &= ~CAN_MCR_INRQ;
-  while((CAN->MSR & CAN_MSR_INAK) != 0);
-
+	
+	/** Setup busy wait timer */
+	canWait = BootTIMEOUT;
+  while((CAN->MSR & CAN_MSR_INAK) != 0)
+	{		
+		if(!(canWait--))
+		{
+			return;		/** Return if the busy wait timer expires */						
+		}	
+	}
 }
 
 /******************************************************************************/
@@ -96,39 +113,72 @@ void CanInit(tBSPType BSPType)
 * LR                        HR
 * D3 D2 D1 D0               D7 D6 D5 D4
 *******************************************************************************/
-void CanSend(uint8_t *pTxData, uint16_t size)
+void CanSend(uint8_t *pTxData, const uint16_t size)
 {
-	uint16_t numRound = 0;
-  uint32_t msgL = 0;
-  uint32_t msgH = 0;
-	uint16_t i = 0;
-	uint8_t len = 0;
-	
-  while(size > 0)
-  {
-    len = min(size, CAN_MAX_DATA_LENGTH);
+	uint32_t i;
+	tCANDataUnion TwoUnion[2];
+	uint16_t tempindex = 0;
+	uint16_t loop8Bytes;
+	uint32_t	canWait;
+
+	loop8Bytes = size / CAN_MAX_DATA_LENGTH;
+	if(size % CAN_MAX_DATA_LENGTH)
+	{
+		loop8Bytes += 1;
+	}
 		
-    for(i = 0; i < min(size, 4); i++)
-    {
-      msgL = (uint32_t)((pTxData[i + (numRound << 3U)] << (i << 3U)) | msgL);
-    }
-    for(i = min(size, 4); i < len; i++)
-    {
-      msgH = (uint32_t)((pTxData[i + (numRound << 3U)] << ((i - 4) << 3U)) | msgH);
-    }
-    while((CAN->TSR & CAN_TSR_TME0) == 0);  // wait until mailbox 0 is empty
-    CAN->sTxMailBox[0].TIR = (BSP_BASE_CAN_ID << 21);
-    CAN->sTxMailBox[0].TDLR = msgL;
-    CAN->sTxMailBox[0].TDHR = msgH;
-    CAN->sTxMailBox[0].TDTR &= ~CAN_TDT0R_DLC;
-    CAN->sTxMailBox[0].TDTR |= len;
-    CAN->sTxMailBox[0].TIR |= CAN_TI0R_TXRQ;  // start transmission
-    while((CAN->TSR & CAN_TSR_RQCP0) == 0);  // wait until transmission completed
-    CAN->TSR |= CAN_TSR_RQCP0;
-    size -= len;
-    numRound++; 
-  }
+	while(loop8Bytes)
+	{
+		TwoUnion[0].uint4Bytes = 0U;
+		TwoUnion[1].uint4Bytes = 0U;
+	
+		for(i = 0; i < CAN_MAX_DATA_LENGTH; i++)
+		{
+			if(tempindex >= size)
+			{
+				break;
+			}else
+			{
+				if(i < 4)
+					TwoUnion[0].uint1Byte[i] = pTxData[tempindex++];
+				else
+					TwoUnion[1].uint1Byte[i-4] = pTxData[tempindex++];
+			}
+		}
+		/** Setup busy wait timer */
+		canWait = BootTIMEOUT;
+		while((CAN->TSR & CAN_TSR_TME0) == 0)
+		{
+			if(!(canWait--))
+			{
+				return;		/** Return if the busy wait timer expires */						
+			}
+		}
+		CAN->sTxMailBox[0].TDLR = TwoUnion[0].uint4Bytes;
+		CAN->sTxMailBox[0].TDHR = TwoUnion[1].uint4Bytes;
+
+		CAN->sTxMailBox[0].TIR = (BSP_BASE_CAN_ID << 21);
+
+		CAN->sTxMailBox[0].TDTR &= ~CAN_TDT0R_DLC;
+
+		CAN->sTxMailBox[0].TDTR |= size;
+
+		CAN->sTxMailBox[0].TIR |= CAN_TI0R_TXRQ;  
+		/** Setup busy wait timer for transmission */
+		canWait = BootTIMEOUT;
+		while((CAN->TSR & CAN_TSR_RQCP0) == 0)
+		{
+			if(!(canWait--))
+			{
+				return;		/** Return if the busy wait timer expires */						
+			}
+		}
+		
+		CAN->TSR |= CAN_TSR_RQCP0;
+		loop8Bytes--;
+	}
 }
+
 /******************************************************************************/
 /**
 * eFUNCTION_RETURN CanRecv(uint8_t *pRxData, uint16_t size)
@@ -149,6 +199,7 @@ eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 	eFUNCTION_RETURN retVal = eFunction_Timeout;
 	uint32_t	temp32U = 0U;
 	uint32_t	i;
+	tCANDataUnion TwoUnion[2];
 	
 	if((CAN->RF0R & CAN_RF0R_FMP0) == 0U)
 	{
@@ -170,18 +221,20 @@ eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 			// retVal = eFunction_Error;
 		}else
 		{
-			temp32U = 0U;
 			/** Get the current message length */
 			temp32U = CAN->sFIFOMailBox[0].RDTR & 0x000FU; // Get the DLC [3:0]
+			
+			TwoUnion[0].uint4Bytes = CAN->sFIFOMailBox[0].RDLR;
+			TwoUnion[1].uint4Bytes = CAN->sFIFOMailBox[0].RDHR;
 			
 			for(i = 0; i < CAN_MAX_DATA_LENGTH; i++)
 			{
 				if(i < 4)
 				{
-					pRxData[index] = (CAN->sFIFOMailBox[0].RDLR >> i * 8U) & 0xFFU;
+					pRxData[index] = TwoUnion[0].uint1Byte[i];
 				}else
 				{
-					pRxData[index] = (CAN->sFIFOMailBox[0].RDHR >> (i - 4U) * 8U) & 0xFFU;
+					pRxData[index] = TwoUnion[1].uint1Byte[i];
 				}
 				index++;
 				if(index >= size)
@@ -224,9 +277,7 @@ inline void CanReset(void)
 inline void CanDeInit(void)
 {
 	index = 0;
-	RCC->APB2ENR &= ~(RCC_APB2ENR_USART1EN);
-	
-	USART1->CR1 &= ~(USART_CR1_TE | USART_CR1_RE | USART_CR1_UE);  
+	RCC->APB1ENR &= ~(RCC_APB1ENR_CANEN);
 	
 	pGPIO_CAN->AFR[TxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)TxPin & MASK3) << 2U));
 	
