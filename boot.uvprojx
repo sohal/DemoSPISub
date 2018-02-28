@@ -364,7 +364,7 @@
             <noStLib>0</noStLib>
             <RepFail>1</RepFail>
             <useFile>0</useFile>
-            <TextAddressRange>0x08001000</TextAddressRange>
+            <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x200000C0</DataAddressRange>
             <pXoBase></pXoBase>
             <ScatterFile></ScatterFile>
@@ -861,7 +861,7 @@
             <noStLib>0</noStLib>
             <RepFail>1</RepFail>
             <useFile>0</useFile>
-            <TextAddressRange>0x08001000</TextAddressRange>
+            <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x200000C0</DataAddressRange>
             <pXoBase></pXoBase>
             <ScatterFile></ScatterFile>
@@ -1358,7 +1358,7 @@
             <noStLib>0</noStLib>
             <RepFail>1</RepFail>
             <useFile>0</useFile>
-            <TextAddressRange>0x08001000</TextAddressRange>
+            <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x200000C0</DataAddressRange>
             <pXoBase></pXoBase>
             <ScatterFile></ScatterFile>

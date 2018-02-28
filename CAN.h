@@ -13,10 +13,7 @@
 #include "Gpio.h"
 #include "BSP.h"
 
-#define CAN_MAX_DATA_LENGTH  	(8U)
-#define CAN_ID_TRS           	(33U)
-#define CAN_ID_REV           	(11U)
-
+#define CAN_MAX_DATA_LENGTH		(8U)  // Maximum number of bytes in CAN bus (4H + 4L)
 #define min(a,b) 							((a)<(b)?(a):(b))
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/

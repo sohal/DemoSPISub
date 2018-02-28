@@ -34,10 +34,10 @@ void CanInit(tBSPType BSPType)
   pGPIO_CAN = BSP_BASE_CAN_PORT;
   
 	pGPIO_CAN->AFR[TxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)TxPin & MASK3) << 2U));
-	pGPIO_CAN->AFR[TxPin >> 3] |= ((uint32_t)GPIO_AF_1 << (((uint32_t)TxPin & MASK3) << 2U));
+	pGPIO_CAN->AFR[TxPin >> 3] |= ((uint32_t)GPIO_AF_4 << (((uint32_t)TxPin & MASK3) << 2U));
 
 	pGPIO_CAN->AFR[RxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)RxPin & MASK3) << 2U));
-	pGPIO_CAN->AFR[RxPin >> 3] |= ((uint32_t)GPIO_AF_1 << (((uint32_t)RxPin & MASK3) << 2U));
+	pGPIO_CAN->AFR[RxPin >> 3] |= ((uint32_t)GPIO_AF_4 << (((uint32_t)RxPin & MASK3) << 2U));
 
 	pGPIO_CAN->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (TxPin << 1));
 	pGPIO_CAN->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (TxPin << 1));
@@ -46,7 +46,7 @@ void CanInit(tBSPType BSPType)
 	pGPIO_CAN->MODER &= ~(GPIO_MODER_MODER0 << (TxPin << 1));
 	pGPIO_CAN->MODER |= ((uint32_t)GPIO_Mode_AF << (TxPin << 1));
 	pGPIO_CAN->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (TxPin << 1));
-	pGPIO_CAN->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (TxPin << 1));
+	pGPIO_CAN->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (TxPin << 1));
 
 	pGPIO_CAN->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (RxPin << 1));
 	pGPIO_CAN->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (RxPin << 1));
@@ -55,12 +55,11 @@ void CanInit(tBSPType BSPType)
 	pGPIO_CAN->MODER &= ~(GPIO_MODER_MODER0 << (RxPin << 1));
 	pGPIO_CAN->MODER |= ((uint32_t)GPIO_Mode_AF << (RxPin << 1));
 	pGPIO_CAN->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (RxPin << 1));
-	pGPIO_CAN->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (RxPin << 1));
-
-  RCC->APB1ENR |= RCC_APB1ENR_CANEN;
+	pGPIO_CAN->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (RxPin << 1));
+	
+	RCC->APB1ENR |= RCC_APB1ENR_CANEN;
 	
 	CAN->MCR = CAN_MCR_INRQ;
-	
   while((CAN->MSR & CAN_MSR_INAK) == 0);
 
   CAN->MCR |= CAN_MCR_NART;
@@ -71,11 +70,11 @@ void CanInit(tBSPType BSPType)
   CAN->FA1R &= ~CAN_FA1R_FACT0;  // deactivate filter
   CAN->FS1R |= CAN_FS1R_FSC0;  // set 32-bit scale configuration
   CAN->FM1R |= CAN_FM1R_FBM0;  // set two 32-bit identifier list mode
-  CAN->sFilterRegister[0].FR1 = (CAN_ID_REV << 21);  // standard ID
-  CAN->sFilterRegister[0].FR2 = (CAN_ID_REV << 21);
+  CAN->sFilterRegister[0].FR1 = (BSP_BASE_CAN_ID << 5) | (0xFF70U <<16);  // standard ID
   CAN->FFA1R &= ~CAN_FFA1R_FFA0;  // assign filter to FIFO 0
   CAN->FA1R |= CAN_FA1R_FACT0;  // activate filter
   CAN->FMR &= ~CAN_FMR_FINIT;
+	CAN->IER |= CAN_IER_FMPIE0;
   // Leave init mode
 
   CAN->MCR &= ~CAN_MCR_INRQ;
@@ -115,7 +114,7 @@ void CanSend(uint8_t *pTxData, uint16_t size)
       msgH = (uint32_t)((pTxData[i + (numRound << 3U)] << ((i - 4) << 3U)) | msgH);
     }
     while((CAN->TSR & CAN_TSR_TME0) == 0);  // wait until mailbox 0 is empty
-    CAN->sTxMailBox[0].TIR = (CAN_ID_TRS << 21);
+    CAN->sTxMailBox[0].TIR = (BSP_BASE_CAN_ID << 21);
     CAN->sTxMailBox[0].TDLR = msgL;
     CAN->sTxMailBox[0].TDHR = msgH;
     CAN->sTxMailBox[0].TDTR &= ~CAN_TDT0R_DLC;
@@ -145,18 +144,54 @@ void CanSend(uint8_t *pTxData, uint16_t size)
 eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 {
 	eFUNCTION_RETURN retVal = eFunction_Timeout;
+	uint32_t	temp32U = 0U;
+	uint32_t	i;
 	
-	if(USART1->ISR & USART_ISR_RXNE)
+	if((CAN->RF0R & CAN_RF0R_FMP0) == 0U)
 	{
-		pRxData[index] = USART1->RDR;
-		index++;
-	}
-	
-	if(index >= size)
+		//Empty fifo
+	}else
 	{
-		index = 0;
-		retVal = eFunction_Ok;
+		/** Get the ID from the receive mailbox fifo */
+		
+		if((CAN->sFIFOMailBox[0].RIR & CAN_RI0R_IDE) == 0)
+		{
+			temp32U = CAN->sFIFOMailBox[0].RIR >> 21U;
+		}else
+		{
+			temp32U = CAN->sFIFOMailBox[0].RIR >> 3U;
+		}
+		/** Check if ID is matching our ID */
+		if(temp32U != BSP_BASE_CAN_ID)
+		{
+			// retVal = eFunction_Error;
+		}else
+		{
+			temp32U = 0U;
+			/** Get the current message length */
+			temp32U = CAN->sFIFOMailBox[0].RDTR & 0x000FU; // Get the DLC [3:0]
+			
+			for(i = 0; i < CAN_MAX_DATA_LENGTH; i++)
+			{
+				if(i < 4)
+				{
+					pRxData[index] = (CAN->sFIFOMailBox[0].RDLR >> i * 8U) & 0xFFU;
+				}else
+				{
+					pRxData[index] = (CAN->sFIFOMailBox[0].RDHR >> (i - 4U) * 8U) & 0xFFU;
+				}
+				index++;
+				if(index >= size)
+				{
+					index = 0;
+					retVal = eFunction_Ok;
+					break;
+				}
+			}
+		}
+		CAN->RF0R |= CAN_RF0R_RFOM0;
 	}
+
   return retVal;
 }
 
