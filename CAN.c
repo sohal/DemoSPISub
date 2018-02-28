@@ -27,6 +27,7 @@ static GPIO_TypeDef *pGPIO_CAN = NULL;
 *******************************************************************************/
 void CanInit(tBSPType BSPType)
 {	
+
   RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
   TxPin = BSP_BASE_CAN_TX_PIN;
@@ -58,7 +59,7 @@ void CanInit(tBSPType BSPType)
 	pGPIO_CAN->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (RxPin << 1));
 	
 	RCC->APB1ENR |= RCC_APB1ENR_CANEN;
-	
+
 	CAN->MCR = CAN_MCR_INRQ;
   while((CAN->MSR & CAN_MSR_INAK) == 0);
 
@@ -66,7 +67,7 @@ void CanInit(tBSPType BSPType)
   
 	CAN->BTR = (2 << 20) | (3 << 16) | (1 << 0); // 500kbit at 8MHz
 
-  CAN->FMR |= CAN_FMR_FINIT;
+	CAN->FMR |= CAN_FMR_FINIT;
   CAN->FA1R &= ~CAN_FA1R_FACT0;  // deactivate filter
   CAN->FS1R |= CAN_FS1R_FSC0;  // set 32-bit scale configuration
   CAN->FM1R |= CAN_FM1R_FBM0;  // set two 32-bit identifier list mode
@@ -75,10 +76,12 @@ void CanInit(tBSPType BSPType)
   CAN->FA1R |= CAN_FA1R_FACT0;  // activate filter
   CAN->FMR &= ~CAN_FMR_FINIT;
 	CAN->IER |= CAN_IER_FMPIE0;
+	CAN->RF0R |= CAN_RF0R_RFOM0;
   // Leave init mode
 
   CAN->MCR &= ~CAN_MCR_INRQ;
   while((CAN->MSR & CAN_MSR_INAK) != 0);
+
 }
 
 /******************************************************************************/
