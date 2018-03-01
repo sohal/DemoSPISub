@@ -59,37 +59,37 @@ void CanInit(tBSPType BSPType)
 	pGPIO_CAN->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (RxPin << 1));
 	pGPIO_CAN->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (RxPin << 1));
 	
+	/** Turn on clock for CAN */
 	RCC->APB1ENR |= RCC_APB1ENR_CANEN;
-
-	CAN->MCR = CAN_MCR_INRQ;
-	
+	/** Enter CAN init mode to write configuration */
+	CAN->MCR |= CAN_MCR_INRQ;
+	/** Wait until we enter init mode */
 	/** Setup busy wait timer */
 	canWait = BootTIMEOUT;
   while((CAN->MSR & CAN_MSR_INAK) == 0)
 	{
 		if(!(canWait--))
 		{
-			return;		/** Return if the busy wait timer expires */						
+			return;		/** Return if the busy wait timer expires todo needs a proper error code */						
 		}	
 	}
-
-  CAN->MCR |= CAN_MCR_NART;
-  
-	CAN->BTR = (2 << 20) | (3 << 16) | (1 << 0); // 500kbit at 8MHz
-
+	/** Exit sleep mode */
+	CAN->MCR &= ~CAN_MCR_SLEEP;
+  /** loopback mode set timing to 500kBaud: BS1 = 4, BS2 = 3, prescaler = 2 */
+  CAN->BTR |= (2 << 20) | (3 << 16) | (1 << 0); 
+	/** Activate filter 0 */
 	CAN->FMR |= CAN_FMR_FINIT;
-  CAN->FA1R &= ~CAN_FA1R_FACT0;  // deactivate filter
-  CAN->FS1R |= CAN_FS1R_FSC0;  // set 32-bit scale configuration
-  CAN->FM1R |= CAN_FM1R_FBM0;  // set two 32-bit identifier list mode
-  CAN->sFilterRegister[0].FR1 = (BSP_BASE_CAN_ID << 5) | (0xFF70U <<16);  // standard ID
-  CAN->FFA1R &= ~CAN_FFA1R_FFA0;  // assign filter to FIFO 0
-  CAN->FA1R |= CAN_FA1R_FACT0;  // activate filter
-  CAN->FMR &= ~CAN_FMR_FINIT;
+	/** Set the ID and mask (all bits of std id care */
+	CAN->FA1R |= CAN_FA1R_FACT0;
+	/** Set the ID and the mask */
+	CAN->sFilterRegister[0].FR1 = (BSP_BASE_CAN_ID << 5) | (0xFF70U <<16);
+	/** Leave filter init */
+	CAN->FMR &= ~CAN_FMR_FINIT;
+	/** Set FIFO0 message pending IT enabled */
 	CAN->IER |= CAN_IER_FMPIE0;
-	CAN->RF0R |= CAN_RF0R_RFOM0;
-
+	/** Come out of initialization */
   CAN->MCR &= ~CAN_MCR_INRQ;
-	
+	/** Wait until we exit init mode */
 	/** Setup busy wait timer */
 	canWait = BootTIMEOUT;
   while((CAN->MSR & CAN_MSR_INAK) != 0)
@@ -201,13 +201,12 @@ eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 	uint32_t	i;
 	tCANDataUnion TwoUnion[2];
 	
-	if((CAN->RF0R & CAN_RF0R_FMP0) == 0U)
+	if((CAN->RF0R & CAN_RF0R_FMP0) != 0U)
 	{
-		//Empty fifo
-	}else
-	{
+		/** Read the FIFO */
+		TwoUnion[0].uint4Bytes = CAN->sFIFOMailBox[0].RDLR;
+		TwoUnion[1].uint4Bytes = CAN->sFIFOMailBox[0].RDHR;
 		/** Get the ID from the receive mailbox fifo */
-		
 		if((CAN->sFIFOMailBox[0].RIR & CAN_RI0R_IDE) == 0)
 		{
 			temp32U = CAN->sFIFOMailBox[0].RIR >> 21U;
@@ -223,10 +222,7 @@ eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 		{
 			/** Get the current message length */
 			temp32U = CAN->sFIFOMailBox[0].RDTR & 0x000FU; // Get the DLC [3:0]
-			
-			TwoUnion[0].uint4Bytes = CAN->sFIFOMailBox[0].RDLR;
-			TwoUnion[1].uint4Bytes = CAN->sFIFOMailBox[0].RDHR;
-			
+
 			for(i = 0; i < CAN_MAX_DATA_LENGTH; i++)
 			{
 				if(i < 4)
@@ -245,6 +241,7 @@ eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 				}
 			}
 		}
+		/** Release FIFO */
 		CAN->RF0R |= CAN_RF0R_RFOM0;
 	}
 
