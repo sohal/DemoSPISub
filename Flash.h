@@ -14,8 +14,12 @@
 #include "BSP.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
-
 /* ********************* Type definitions ( typedef ) *************************/
+typedef struct myFlash{
+	uint32_t	CRCinFlash;
+	uint32_t	LENinFlash;
+	uint32_t	TOTALPages;
+}tFlashLimits;
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/

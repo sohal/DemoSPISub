@@ -20,10 +20,10 @@
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
-typedef union myCanData{
-	uint32_t 	uint4Bytes;
-	uint8_t 	uint1Byte[4];
-}tCANDataUnion;
+typedef union myCanAllData{
+	uint32_t 	Word[2];
+	uint8_t		Byte[8];
+}tCANData;
 
 void CanInit(tBSPType BSPType);
 void CanSend(uint8_t *pTxData, uint16_t size);
