@@ -75,8 +75,15 @@ void CanInit(tBSPType BSPType)
 	}
 	/** Exit sleep mode */
 	CAN->MCR &= ~CAN_MCR_SLEEP;
-  /** loopback mode set timing to 500kBaud: BS1 = 4, BS2 = 3, prescaler = 2 */
-  CAN->BTR |= (2 << 20) | (3 << 16) | (1 << 0); 
+	#if (BSP_BASE_CAN_BAUD == 500000U)
+	#warning CAN bus baud: 500k
+	/** loopback mode set timing to 500kBaud: BS1 = 4, BS2 = 3, prescaler = 1 */
+  CAN->BTR = (2 << 20) | (3 << 16) | (1 << 0); 
+	#else
+	#warning CAN bus baud: 1M
+	/** loopback mode set timing to 1MBaud: BS1 = 4, BS2 = 3, prescaler = 0 */
+	CAN->BTR = (2 << 20) | (3 << 16) | (0 << 0); 
+	#endif
 	/** Activate filter 0 */
 	CAN->FMR |= CAN_FMR_FINIT;
 	/** Set the ID and mask (all bits of std id care */
@@ -140,8 +147,7 @@ void CanSend(uint8_t *pTxData, uint16_t size)
 		{
 			TxData.Byte[i] = pTxData[tempindex++];
 		}
-		
-		
+				
 		/** Setup busy wait timer */
 		canWait = BootTIMEOUT;
 		while((CAN->TSR & CAN_TSR_TME0) == 0)
