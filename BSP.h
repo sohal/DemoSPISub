@@ -55,7 +55,7 @@
 #define BSP_BASE_CAN_PORT						GPIOA
 #define BSP_BASE_CAN_TX_PIN					12U
 #define BSP_BASE_CAN_RX_PIN					11U
-#define BSP_BASE_CAN_BAUD						1000000U
+#define BSP_BASE_CAN_BAUD						500000U
 #define BSP_BASE_RCC_MULTIPLIER			(8UL)
 #define BSP_BASE_CAN_ID							(8U)
 
