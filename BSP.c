@@ -16,7 +16,18 @@ tBSPStruct* BSP_Init(void)
 	gIF.CommDoneTicks 		= 10000UL;
 	gIF.TwoBytesTicks			= 300UL;
 	uint32_t temp_u32 		= 0UL;
-
+	
+#if defined (SELECT_TORQUE)
+	gIF.BSP_Type = BSP_TorqueSensor;
+	#warning Torque Sensor is selected 
+#elif defined (SELECT_PILOT)
+	gIF.BSP_Type = BSP_Pilot;
+	#warning Pilot is selected
+#elif defined (SELECT_CAN)
+	gIF.BSP_Type = BSP_STM32F042;
+	#warning CAN bus selected
+#else
+	#error Select a valid board type
 	temp_u32 = DBGMCU->IDCODE;
 	
 	if((temp_u32 & DBGMCU_IDCODE_DEV_ID) != DBGMCU_ID_F03x)
@@ -56,18 +67,6 @@ tBSPStruct* BSP_Init(void)
 			}
 		}
 	}
-	
-#if defined (SELECT_TORQUE)
-	gIF.BSP_Type = BSP_TorqueSensor;
-	#warning Torque Sensor is selected 
-#elif defined (SELECT_PILOT)
-	gIF.BSP_Type = BSP_Pilot;
-	#warning Pilot is selected
-#elif defined (SELECT_CAN)
-	gIF.BSP_Type = BSP_STM32F042;
-	#warning CAN bus selected
-#else
-	#error Select a valid board type
 #endif
 	switch(gIF.BSP_Type)
 	{
