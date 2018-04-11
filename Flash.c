@@ -26,14 +26,14 @@ void FlashInit(tBSPType BSPType)
 {
     if(BSPType == BSP_Pilot)
 		{
-			FlashSettings.CRCinFlash = BSP_PILOT_FLASH_END - 3UL;
-			FlashSettings.LENinFlash = BSP_PILOT_FLASH_END - 1UL;
-			FlashSettings.TOTALPages = BSP_PILOT_PROGRAM_SECTORS;
+			FlashSettings.CRCinFlash = BSP_ABSOLUTE_FLASH_END_16KB - 4UL;
+			FlashSettings.LENinFlash = BSP_ABSOLUTE_FLASH_END_16KB - 2UL;
+			FlashSettings.TOTALPages = BSP_APP_PROGRAM_PAGES_16KB;
 		}else 
 		{
-			FlashSettings.CRCinFlash = BSP_BASE_FLASH_END - 3UL;
-			FlashSettings.LENinFlash = BSP_BASE_FLASH_END - 1UL;
-			FlashSettings.TOTALPages = BSP_BASE_PROGRAM_SECTORS;
+			FlashSettings.CRCinFlash = BSP_ABSOLUTE_FLASH_END_32KB - 4UL;
+			FlashSettings.LENinFlash = BSP_ABSOLUTE_FLASH_END_32KB - 2UL;
+			FlashSettings.TOTALPages = BSP_APP_PROGRAM_PAGES_32KB;
 		}
 }
 
@@ -53,7 +53,7 @@ uint8_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo)
 {
     uint16_t i = 0;
 		uint32_t flashWait = BootTIMEOUT;
-		uint16_t* p16 = (uint16_t *)(BSP_APPLICATION_START + (pktNo * size));  
+		uint16_t* p16 = (uint16_t *)(BSP_ABSOLUTE_APP_START + (pktNo * size));  
 		/**
 		 *	Size should be a non zero number less than 1025 and should be a multiple
 		 * 	of two since we write 2 bytes.
@@ -88,7 +88,7 @@ uint8_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo)
     }
 		/** Lets verify flash if we have written correctly */
 		i = 0;
-		p16 = (uint16_t *)(BSP_APPLICATION_START + (pktNo * size));
+		p16 = (uint16_t *)(BSP_ABSOLUTE_APP_START + (pktNo * size));
 		while(i < size) 
     {
         if(*p16++ != ((uint16_t)(buf[i+1] << 8) | buf[i]))
@@ -113,7 +113,7 @@ uint8_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo)
 uint8_t FlashErase(void)
 {
 		uint32_t flashWait = BootTIMEOUT;
-    uint32_t flashAdr = (uint32_t)BSP_APPLICATION_START;
+    uint32_t flashAdr = (uint32_t)BSP_ABSOLUTE_APP_START;
 	
 	// Unlock Flash
     FLASH->KEYR = FLASH_KEY1;
@@ -146,7 +146,7 @@ uint8_t FlashErase(void)
             FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
             return 0;
         }
-        flashAdr = flashAdr + BSP_PAGE_SIZE_BYTES;
+        flashAdr = flashAdr + BSP_FLASH_PAGE_SIZE_BYTES;
     }
     return 1;
 }
@@ -247,11 +247,11 @@ uint8_t FlashVerifyFirmware(void)
 	volatile const uint16_t crcFromHost = (uint16_t)(temp32 & 0x0000FFFFUL);
 	uint16_t dataByte = 0;
 	uint16_t CRCtemp = 0;
-	uint16_t *fwar = (uint16_t*)BSP_ALLBOARD_BOOT_END;
+	uint16_t *fwar = (uint16_t*)BSP_ABSOLUTE_APP_START;
 	/* Read from FLASH_CRC_LENGTH_ADDRESS the firmware crc and length from host */
 
 	/** Check if the length is within flash range or the read flash will fail */
-	if(lenFromHost > (FlashSettings.CRCinFlash - BSP_APPLICATION_START))
+	if(lenFromHost > (FlashSettings.CRCinFlash - BSP_ABSOLUTE_APP_START))
 	{
 		return 0;
 	}

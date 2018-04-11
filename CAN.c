@@ -31,9 +31,9 @@ void CanInit(tBSPType BSPType)
 	
   RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
-  TxPin = BSP_BASE_CAN_TX_PIN;
-  RxPin = BSP_BASE_CAN_RX_PIN;
-  pGPIO_CAN = BSP_BASE_CAN_PORT;
+  TxPin = BSP_TARGET_CAN_TX_PIN;
+  RxPin = BSP_TARGET_CAN_RX_PIN;
+  pGPIO_CAN = BSP_TARGET_CAN_PORT;
   
 	pGPIO_CAN->AFR[TxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)TxPin & MASK3) << 2U));
 	pGPIO_CAN->AFR[TxPin >> 3] |= ((uint32_t)GPIO_AF_4 << (((uint32_t)TxPin & MASK3) << 2U));
@@ -89,7 +89,7 @@ void CanInit(tBSPType BSPType)
 	/** Set the ID and mask (all bits of std id care */
 	CAN->FA1R |= CAN_FA1R_FACT0;
 	/** Set the ID and the mask */
-	CAN->sFilterRegister[0].FR1 = (BSP_BASE_CAN_ID << 5) | (0xFF70U <<16);
+	CAN->sFilterRegister[0].FR1 = (BSP_TARGET_CAN_ID_BASE << 5) | (0xFF70U <<16);
 	/** Leave filter init */
 	CAN->FMR &= ~CAN_FMR_FINIT;
 	/** Set FIFO0 message pending IT enabled */
@@ -161,7 +161,7 @@ void CanSend(uint8_t *pTxData, uint16_t size)
 		CAN->sTxMailBox[0].TDLR = TxData.Word[0];
 		CAN->sTxMailBox[0].TDHR = TxData.Word[1];
 
-		CAN->sTxMailBox[0].TIR = (BSP_BASE_CAN_ID << 21);
+		CAN->sTxMailBox[0].TIR = (BSP_TARGET_CAN_ID_BASE << 21);
 
 		CAN->sTxMailBox[0].TDTR &= ~CAN_TDT0R_DLC;
 
@@ -220,7 +220,7 @@ eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 			temp32U = CAN->sFIFOMailBox[0].RIR >> 3U;
 		}
 		/** Check if ID is matching our ID */
-		if(temp32U != BSP_BASE_CAN_ID)
+		if(temp32U != BSP_TARGET_CAN_ID_BASE)
 		{
 			// retVal = eFunction_Error;
 		}else

@@ -97,11 +97,11 @@ void Usart1Init(tBSPType BSPType)
 *******************************************************************************/
 void Usart1Send(uint8_t *pTxData, uint16_t size)
 {
-	while(size > 0)
+    uint16_t i = 0U;
+    while(i < size)
 	{
-		size--;
 		while((USART1->ISR & USART_ISR_TXE) == 0);
-		USART1->TDR = pTxData[size];
+		USART1->TDR = pTxData[i++];
 	}
 }
 

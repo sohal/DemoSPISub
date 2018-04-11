@@ -1501,7 +1501,7 @@
       </Groups>
     </Target>
     <Target>
-      <TargetName>Release_Gripper</TargetName>
+      <TargetName>Release_Grip</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pArmCC>5060528::V5.06 update 5 (build 528)::ARMCC</pArmCC>
@@ -1544,7 +1544,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>Release_Gripper</OutputName>
+          <OutputName>Release_Grip</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -1577,7 +1577,7 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>fromelf --bin --output=.\Objects\Release_Gripper.bin .\Objects\Release_Gripper.axf</UserProg1Name>
+            <UserProg1Name>fromelf --bin --output=.\Objects\Release_Grip.bin .\Objects\Release_Grip.axf</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -3141,7 +3141,7 @@
         <targetInfos>
           <targetInfo name="Release_Base" versionMatchMode="fixed"/>
           <targetInfo name="Release_DIO" versionMatchMode="fixed"/>
-          <targetInfo name="Release_Gripper" versionMatchMode="fixed"/>
+          <targetInfo name="Release_Grip" versionMatchMode="fixed"/>
           <targetInfo name="Release_Pilot" versionMatchMode="fixed"/>
         </targetInfos>
       </package>
@@ -3149,7 +3149,7 @@
         <targetInfos>
           <targetInfo name="Release_Base" versionMatchMode="fixed"/>
           <targetInfo name="Release_DIO" versionMatchMode="fixed"/>
-          <targetInfo name="Release_Gripper" versionMatchMode="fixed"/>
+          <targetInfo name="Release_Grip" versionMatchMode="fixed"/>
           <targetInfo name="Release_Pilot" versionMatchMode="fixed"/>
         </targetInfos>
       </package>
@@ -3161,7 +3161,7 @@
         <targetInfos>
           <targetInfo name="Release_Base"/>
           <targetInfo name="Release_DIO"/>
-          <targetInfo name="Release_Gripper"/>
+          <targetInfo name="Release_Grip"/>
           <targetInfo name="Release_Pilot"/>
           <targetInfo name="Release_Torque"/>
           <targetInfo name="Release_WatchDog"/>
@@ -3172,7 +3172,7 @@
         <targetInfos>
           <targetInfo name="Release_Base"/>
           <targetInfo name="Release_DIO"/>
-          <targetInfo name="Release_Gripper"/>
+          <targetInfo name="Release_Grip"/>
           <targetInfo name="Release_Pilot"/>
           <targetInfo name="Release_Torque"/>
           <targetInfo name="Release_WatchDog"/>
@@ -3191,7 +3191,7 @@
         <targetInfos>
           <targetInfo name="Release_Base"/>
           <targetInfo name="Release_DIO"/>
-          <targetInfo name="Release_Gripper"/>
+          <targetInfo name="Release_Grip"/>
         </targetInfos>
       </component>
     </components>
@@ -3261,7 +3261,7 @@
         <targetInfos>
           <targetInfo name="Release_Base"/>
           <targetInfo name="Release_DIO"/>
-          <targetInfo name="Release_Gripper"/>
+          <targetInfo name="Release_Grip"/>
         </targetInfos>
       </file>
       <file attr="config" category="sourceC" name="Device\Source\system_stm32f0xx.c" version="2.2.3">
@@ -3271,7 +3271,7 @@
         <targetInfos>
           <targetInfo name="Release_Base"/>
           <targetInfo name="Release_DIO"/>
-          <targetInfo name="Release_Gripper"/>
+          <targetInfo name="Release_Grip"/>
         </targetInfos>
       </file>
       <file attr="config" category="sourceAsm" condition="Compiler ARMCC" name="Device\Source\ARM\startup_stm32f042x6.s" version="2.2.3">

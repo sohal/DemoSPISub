@@ -16,8 +16,8 @@
 static tCmdUnion 					Command;
 static tPldUnion 					Payload;
 static tAppDataUnion 			AppData;
-static volatile uint32_t *AppVectorsInFlash 	= (volatile uint32_t *)BSP_APPLICATION_START;
-static volatile uint32_t *AppVectorsInRAM 		= (volatile uint32_t *)BSP_SRAM_START;
+static volatile uint32_t *AppVectorsInFlash 	= (volatile uint32_t *)BSP_ABSOLUTE_APP_START;
+static volatile uint32_t *AppVectorsInRAM 		= (volatile uint32_t *)BSP_ABSOLUTE_SRAM_START;
 /* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
 
@@ -204,7 +204,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 			/* Lock flash from further write */				
 			FlashLock();
 			/* Remap Application Vectors */
-			for(int i = 0; i < BSP_VECTOR_SIZE_WORDS; i++)
+			for(int i = 0; i < BSP_APP_VECTOR_SIZE_WORDS; i++)
 			{
 				AppVectorsInRAM[i] = AppVectorsInFlash[i];
 			}
