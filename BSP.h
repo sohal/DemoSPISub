@@ -1,12 +1,15 @@
+/******************************************************************************/
+/**
+* @file BSP.h
+* @brief Implement BSP
+*
+*******************************************************************************/
 #ifndef BSP_H_
 #define BSP_H_
-
+/* ***************** Header / include files ( #include ) **********************/
 #include "stm32f0xx.h"
 #include "Common.h"
-#include "Usart1.h"
-#include "Spi1.h"
-#include "Can.h"
-#include "Flash.h"
+/* *************** Constant / macro definitions ( #define ) *******************/
 
 #define BootTIMEOUT                         (300000U)
 #define BSP_ALLBOARD_HSI_FREQUENCY          (8000000U)
@@ -80,13 +83,38 @@
 #define BSP_CHECK_PORT                      (GPIOA)
 #define BSP_CHECK_PIN_6                     (6U)
 #define BSP_CHECK_PIN_7                     (7U)
-
+/* ********************* Type definitions ( typedef ) *************************/
 typedef struct timeouts{
     uint32_t ThreeSeconds;
     uint32_t StartApp;
     uint32_t EndOfComm;
 }tTimeouts;
 
+typedef enum bsptype {
+    BSP_UnKnown,
+    BSP_Pilot,
+    BSP_TorqueSensor,
+    BSP_ExtWatchdog,
+    BSP_CAN,
+    BSP_NucleoF0x
+}tBSPType;
+
+typedef struct  {
+    tBSPType BSP_Type;
+    void (*pInit)(const tBSPType);
+    void (*pSend)(uint8_t *, uint16_t);
+    eFUNCTION_RETURN (*pRecv)(uint8_t *, uint16_t);
+    void (*pReset)(void);
+    void (*pDeInit)(void);
+    uint32_t BootTimeoutTicks;
+    uint32_t AppStartTicks;
+    uint32_t CommDoneTicks;
+    uint32_t TwoBytesTicks;
+}tBSPStruct;
+/* ***************** Global data declarations ( extern ) **********************/
+/* ***** External parameter / constant declarations ( extern const ) **********/
+/* ********************** Global func/proc prototypes *************************/
+/*******************************************************************************/
 tBSPStruct* BSP_Init(void);
 void BSP_DeInit(void);
 #endif
