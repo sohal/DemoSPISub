@@ -20,10 +20,6 @@ typedef enum
     eFunction_Error    = 2  /**< Data lost          */
 }eFUNCTION_RETURN;
 
-#ifndef NULL
-#define NULL                      ((void *)0)
-#endif
-
 #define MASK_BIT_0                (1UL <<  0U)
 #define MASK_BIT_1                (1UL <<  1U)
 #define MASK_BIT_2                (1UL <<  2U)
@@ -51,4 +47,4 @@ typedef enum
 
 #endif
 
-/* end of Packet.h */
+/* end of Common.h */

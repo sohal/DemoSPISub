@@ -5,8 +5,8 @@
 *
 ******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
-#include "Protocol.h"
 #include "BSP.h"
+#include "Protocol.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
@@ -14,15 +14,14 @@
 /* ***************** Modul global data segment ( static ) *********************/
 /* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
-
 /******************************************************************************/
 
 int main (void)
 {
-	tBSPStruct* pBSP = BSP_Init();
-	
-  for(;;)
-  {
-		ProtocolSM_Run(pBSP);
-  }
+    tBSPStruct* pBSP = BSP_Init();
+
+    for(;;)
+    {
+        ProtocolSM_Run(pBSP);
+    }
 }

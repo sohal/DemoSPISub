@@ -42,7 +42,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
     uint16_t crcCalculated = 0U;
     static uint32_t tickCounter = 0U;
     static uint32_t stickyTimer = 0U;
-        
+
     switch(stateNow)
     {
         case eDefaultState:
@@ -68,7 +68,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 }
             }
             break;
-            
+
         case eFlashEraseCMD:
             if(pBSP->pRecv(Command.bufferCMD, 2) == eFunction_Ok)
             {
@@ -86,7 +86,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 }
             }
             break;
-        
+
         case eWriteMemory:
             if(pBSP->pRecv(Command.bufferCMD, 2) == eFunction_Ok)
             {
@@ -100,7 +100,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 }
             }
             break;
-            
+
         case ePayloadReceive:
             retVal = pBSP->pRecv(Payload.bufferPLD, sizeof(tPldUnion));
             if((pktCounter == Payload.packet.u16SeqCnt) && (retVal == eFunction_Ok))
@@ -108,7 +108,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 stateNext = ePayloadCheck;
                 tickCounter = 0;
             }
-            
+
             if(Payload.packet.u16CRC == 0xFFFFU)
             {
                 if(Payload.packet.u16SeqCnt == 0xFFFFU)
@@ -134,9 +134,9 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 }
             }
             break;
-        
+
         case ePayloadCheck:
-            crcCalculated = CRCCalc16(Payload.packet.u8Data,64, 0); 
+            crcCalculated = CRCCalc16(Payload.packet.u8Data,64, 0);
             if(crcCalculated == Payload.packet.u16CRC)
             {
                 if(FlashWrite(Payload.bufferPLD, BLOCK_SIZE, pktCounter))
@@ -153,13 +153,13 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             Payload.packet.u16SeqCnt = 0xFFFFU;
             Payload.packet.u16CRC = 0xFFFFU;
             pBSP->pSend(Command.bufferCMD, 2);
-            
+
             break;
 
         case eWriteAppCRC:
             retVal = pBSP->pRecv(AppData.bufferData, 4);
             if(retVal == eFunction_Ok)
-            {    
+            {
                 Command.returnValue = eRES_Error;
                 if(FlashWriteFWParam(AppData.Firmware))
                 {
@@ -170,15 +170,15 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 pBSP->pSend(Command.bufferCMD,2);
             }
             break;
-        
+
         case eFinishUpdate:
             retVal = pBSP->pRecv(Command.bufferCMD, 2);
             if((retVal == eFunction_Ok) && (Command.receivedvalue == eCMD_Finish))
-            {                
+            {
                 stateNext = eFlashVerifyApplication;
             }
             break;
-        
+
         case eFlashVerifyApplication:
             Command.returnValue = eRES_Abort;
             if(FlashVerifyFirmware())
@@ -192,16 +192,14 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             }
             pBSP->pSend(Command.bufferCMD, 2);
             break;
-        
+
         case eStartAppCMD:
             /** Busy wait for some time */
             tickCounter = pBSP->CommDoneTicks;
             do{
             }while(tickCounter--);
-        
-            pBSP->pDeInit();
-                
-            /* Lock flash from further write */                
+
+            /* Lock flash from further write */
             FlashLock();
             /* Remap Application Vectors */
             for(int i = 0; i < BSP_APP_VECTOR_SIZE_WORDS; i++)
@@ -210,20 +208,20 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             }
             /* Setup controller mode to consider vectors from RAM */
             RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;
-            SYSCFG->CFGR1 |= SYSCFG_CFGR1_MEM_MODE;                                                                      
-            
+            SYSCFG->CFGR1 |= SYSCFG_CFGR1_MEM_MODE;
+
             /* Setup Application Stack Pointer */
             __set_MSP(*AppVectorsInFlash);
             /* Setup Program counter with the start of Application */
-            ((void (*)(void))*(AppVectorsInFlash + 1UL))();  
+            ((void (*)(void))*(AppVectorsInFlash + 1UL))();
             break;
-            
+
         default:
             /* We will never come here if all is OK, nevertheless we restore state machine to default state */
             stateNext = eDefaultState;
             break;
     }
-    
+
     /* Check if the same state is repeating, no transition suggests a
      * hung state. We can count the stickyness of the software and reset
      * to a known state.
@@ -243,8 +241,8 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
         /* Reset the sticky counter if the state transition takes place */
         stickyTimer = 0U;
     }
-    
+
     stateNow = stateNext;
-    
+
     return(retVal);
 }

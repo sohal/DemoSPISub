@@ -5,20 +5,14 @@
 *
 *******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
-#include <stdint.h>
-#include <stddef.h>
 #include "CRC.h"
-
 /* *************** Constant / macro definitions ( #define ) *******************/
 #define CRC16 0xAA55
-
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
-
-
 /******************************************************************************/
 /**
 * uint16_t CRCCalc16(const uint8_t *data, uint16_t size, uint16_t startVal)

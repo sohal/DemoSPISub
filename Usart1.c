@@ -6,6 +6,7 @@
 *******************************************************************************/
 
 /* ***************** Header / include files ( #include ) **********************/
+#include <stddef.h>
 #include "Usart1.h"
 #if defined (SELECT_TORQUE) || defined (SELECT_PILOT)
     
@@ -91,7 +92,7 @@ void Usart1Init(tBSPType BSPType)
 * @param[in] size number of bytes
 *
 *******************************************************************************/
-void Usart1Send(uint8_t *pTxData, uint16_t size)
+void Usart1Send(uint8_t *pTxData, const uint16_t size)
 {
     uint16_t i = 0U;
     while(i < size)
@@ -105,7 +106,7 @@ void Usart1Send(uint8_t *pTxData, uint16_t size)
 /**
 * eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, uint16_t size)
 *
-* @brief Read from UART. It will retry 3 times in case of failure.
+* @brief Read from UART. 
 *
 * @param[out] pRxData pointer to 68 bytes data
 * @param[in]  size number of bytes
@@ -146,27 +147,6 @@ eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, const uint16_t size)
 inline void Usart1Reset(void)
 {
     index = 0;
-}
-
-/******************************************************************************/
-/**
-* void Usart1DeInit(void)
-*
-* @brief Reset receive pointer index
-*
-* @returns    none
-*
-*******************************************************************************/
-inline void Usart1DeInit(void)
-{
-    index = 0;
-    RCC->APB2ENR &= ~(RCC_APB2ENR_USART1EN);
-    
-    USART1->CR1 &= ~(USART_CR1_TE | USART_CR1_RE | USART_CR1_UE);  
-    
-    pGPIO_USART->AFR[TxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)TxPin & MASK3) << 2U));
-    
-    pGPIO_USART->AFR[RxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)RxPin & MASK3) << 2U));
 }
 
 #endif

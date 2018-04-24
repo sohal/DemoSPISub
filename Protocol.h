@@ -10,7 +10,6 @@
 /* ***************** Header / include files ( #include ) **********************/
 #include <stdint.h>
 #include <stddef.h>
-#include <string.h>
 #include "Common.h"
 #include "Usart1.h"
 #include "Command.h"

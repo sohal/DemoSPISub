@@ -79,14 +79,8 @@
 #define BSP_CHECK_PIN_6                     (6U)
 #define BSP_CHECK_PIN_7                     (7U)
 /* ********************* Type definitions ( typedef ) *************************/
-typedef struct timeouts{
-    uint32_t ThreeSeconds;
-    uint32_t StartApp;
-    uint32_t EndOfComm;
-}tTimeouts;
-
 typedef enum bsptype {
-    BSP_UnKnown,
+    BSP_Unknown,
     BSP_Pilot,
     BSP_TorqueSensor,
     BSP_ExtWatchdog,
@@ -99,7 +93,6 @@ typedef struct  {
     void (*pSend)(uint8_t *, uint16_t);
     eFUNCTION_RETURN (*pRecv)(uint8_t *, uint16_t);
     void (*pReset)(void);
-    void (*pDeInit)(void);
     uint32_t BootTimeoutTicks;
     uint32_t AppStartTicks;
     uint32_t CommDoneTicks;
@@ -110,5 +103,4 @@ typedef struct  {
 /* ********************** Global func/proc prototypes *************************/
 /*******************************************************************************/
 tBSPStruct* BSP_Init(void);
-void BSP_DeInit(void);
 #endif

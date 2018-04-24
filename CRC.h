@@ -6,10 +6,9 @@
 *******************************************************************************/
 #ifndef CRC_H
 #define CRC_H
-
 /* ***************** Header / include files ( #include ) **********************/
-#include "Packet.h"
-
+#include <stddef.h>
+#include <stdint.h>
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* ***************** Global data declarations ( extern ) **********************/

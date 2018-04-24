@@ -5,11 +5,11 @@
 *
 *******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
+#include <stddef.h>
 #include "BSP.h"
-#include "Usart1.h"
-#include "Spi1.h"
 #include "Can.h"
 #include "Flash.h"
+#include "Usart1.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
@@ -17,7 +17,6 @@
 /* ***************** Modul global data segment ( static ) *********************/
 static tBSPStruct gIF;
 static void TorqueSensorCoreClockInit(void);
-static void TorqueSensorCoreClockDeInit(void);
 /******************************************************************************/
 /**
 * tBSPStruct* BSP_Init(void)
@@ -28,10 +27,9 @@ static void TorqueSensorCoreClockDeInit(void);
 tBSPStruct* BSP_Init(void)
 {
     gIF.pInit           = NULL;
-    gIF.pDeInit         = NULL;
     gIF.pSend           = NULL;
     gIF.pReset          = NULL;
-    gIF.BSP_Type        = BSP_UnKnown;
+    gIF.BSP_Type        = BSP_Unknown;
     gIF.BootTimeoutTicks= BootTIMEOUT;
     gIF.AppStartTicks   = BootTIMEOUT - 100000UL;
     gIF.CommDoneTicks   = 10000UL;
@@ -48,6 +46,11 @@ tBSPStruct* BSP_Init(void)
     gIF.BSP_Type = BSP_CAN;
     #warning CAN bus selected
 #else
+/** 
+* The section below will may be used to determine the board type by dedicated GPIO  settings
+* in the hardware in future. When such a functionality is available, remove the #error below and
+* test the code with the correct GPIO pin/port settings. Until then, use targets in the project.
+*/
     #error Select a valid board type
     temp_u32 = DBGMCU->IDCODE;
     
@@ -96,7 +99,6 @@ tBSPStruct* BSP_Init(void)
             gIF.pRecv   = &Usart1Recv;
             gIF.pSend   = &Usart1Send;
             gIF.pReset  = &Usart1Reset;
-            gIF.pDeInit = &Usart1DeInit;
             break;
         
         case BSP_TorqueSensor:
@@ -104,7 +106,6 @@ tBSPStruct* BSP_Init(void)
             gIF.pRecv   = &Usart1Recv;
             gIF.pSend   = &Usart1Send;
             gIF.pReset  = &Usart1Reset;
-            gIF.pDeInit = &Usart1DeInit;
             TorqueSensorCoreClockInit();
             break;
         
@@ -112,7 +113,6 @@ tBSPStruct* BSP_Init(void)
             gIF.pInit   = NULL;
             gIF.pRecv   = NULL;
             gIF.pSend   = NULL;
-            gIF.pDeInit = &Usart1DeInit;
             break;
         
         case BSP_CAN:
@@ -120,7 +120,6 @@ tBSPStruct* BSP_Init(void)
             gIF.pRecv   = &CanRecv;
             gIF.pSend   = &CanSend;
             gIF.pReset  = &CanReset;
-            gIF.pDeInit = &CanDeInit;
             break;
         
         default:
@@ -146,21 +145,6 @@ tBSPStruct* BSP_Init(void)
     FlashInit(gIF.BSP_Type);
     
     return(&gIF);
-}
-/******************************************************************************/
-/**
-* void BSP_DeInit(void)
-* @brief Clear the bsp related hardware configuration.
-*
-*******************************************************************************/
-void BSP_DeInit(void)
-{
-    if(gIF.BSP_Type == BSP_TorqueSensor)
-    {
-        TorqueSensorCoreClockDeInit();
-    }
-    //gif.pDeInit();
-    
 }
 /******************************************************************************/
 /**
@@ -196,14 +180,4 @@ void TorqueSensorCoreClockInit(void)
     RCC->CFGR |=  RCC_CFGR_SW_PLL;
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);  /* Wait till PLL is system clock src */
 }
-/******************************************************************************/
-/**
-* void TorqueSensorCoreClockDeInit(void)
-* @brief Revert the configuration changes for torque sensor clock
-*
-*******************************************************************************/
-void TorqueSensorCoreClockDeInit(void)
-{
-    //ToDo
-    //SystemClockUpdate();
-}
+

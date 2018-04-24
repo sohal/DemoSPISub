@@ -4,5 +4,5 @@ Objects
 tags
 JLinkLog.txt
 JLinkSettings.ini
-RTE/
+# RTE/
 *.scvd

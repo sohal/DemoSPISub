@@ -12,7 +12,7 @@
 #include "CRC.h"
 #include "Common.h"
 #include "BSP.h"
-
+#include "Packet.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 typedef struct myFlash{
