@@ -45,18 +45,11 @@ void Usart1Init(tBSPType BSPType)
             break;
 
         case BSP_TorqueSensor:
+        default:
             TxPin = BSP_TORQUE_UART_TX_PIN;
             RxPin = BSP_TORQUE_UART_RX_PIN;
             Baud  = BSP_TORQUE_UART_BAUD;
             pGPIO_USART = BSP_TORQUE_UART_PORT;
-            break;
-        
-        case BSP_NucleoF0x:
-        default:
-            TxPin = BSP_NUCLEO_UART_TX_PIN;
-            RxPin = BSP_NUCLEO_UART_RX_PIN;
-            Baud  = BSP_NUCLEO_UART_BAUD;
-            pGPIO_USART = BSP_NUCLEO_UART_PORT;
             break;
     }
 

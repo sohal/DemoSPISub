@@ -54,7 +54,7 @@ tBSPStruct* BSP_Init(void)
     if((temp_u32 & DBGMCU_IDCODE_DEV_ID) != DBGMCU_ID_F03x)
     {
         /* Make BSP config for F04x, Interface is always CAN */
-        gIF.BSP_Type = BSP_STM32F042;
+        gIF.BSP_Type = BSP_CAN;
     }else
     {
         /* Interface can be SPI or USART for F03x family so more investigation necessary */
@@ -112,14 +112,6 @@ tBSPStruct* BSP_Init(void)
             gIF.pInit   = NULL;
             gIF.pRecv   = NULL;
             gIF.pSend   = NULL;
-            gIF.pDeInit = &Usart1DeInit;
-            break;
-        
-        case BSP_NucleoF0x:
-            gIF.pInit   = &Usart1Init;
-            gIF.pRecv   = &Usart1Recv;
-            gIF.pSend   = &Usart1Send;
-            gIF.pReset  = &Usart1Reset;
             gIF.pDeInit = &Usart1DeInit;
             break;
         

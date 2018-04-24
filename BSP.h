@@ -75,11 +75,6 @@
 #define BSP_TARGET_RCC_MULTIPLIER           (8UL)
 #define BSP_TARGET_CAN_ID_BASE              (8U)
 
-#define BSP_NUCLEO_UART_PORT                (GPIOA)
-#define BSP_NUCLEO_UART_TX_PIN              (2U)
-#define BSP_NUCLEO_UART_RX_PIN              (15U)
-#define BSP_NUCLEO_UART_BAUD                (57600U)
-
 #define BSP_CHECK_PORT                      (GPIOA)
 #define BSP_CHECK_PIN_6                     (6U)
 #define BSP_CHECK_PIN_7                     (7U)
@@ -95,8 +90,7 @@ typedef enum bsptype {
     BSP_Pilot,
     BSP_TorqueSensor,
     BSP_ExtWatchdog,
-    BSP_CAN,
-    BSP_NucleoF0x
+    BSP_CAN
 }tBSPType;
 
 typedef struct  {
