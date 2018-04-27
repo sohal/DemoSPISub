@@ -8,7 +8,7 @@
 /* ***************** Header / include files ( #include ) **********************/
 #include <stddef.h>
 #include "Can.h"
-#if defined (SELECT_CAN)
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
@@ -270,4 +270,3 @@ inline void CanReset(void)
 {
     index = 0;
 }
-#endif
