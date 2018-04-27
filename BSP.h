@@ -65,14 +65,12 @@
 #define BSP_TORQUE_UART_TX_PIN              (2U)
 #define BSP_TORQUE_UART_RX_PIN              (3U)
 #define BSP_TORQUE_UART_BAUD                (1125000U)
-#define BSP_TORQUE_RCC_MULTIPLIER           (8UL)
 
 /** Interface Ports, Pins and configuration in targets for CAN bus communication */
 #define BSP_TARGET_CAN_PORT                 (GPIOA)
 #define BSP_TARGET_CAN_TX_PIN               (12U)
 #define BSP_TARGET_CAN_RX_PIN               (11U)
 #define BSP_TARGET_CAN_BAUD                 (500000U)
-#define BSP_TARGET_RCC_MULTIPLIER           (8UL)
 #define BSP_TARGET_CAN_ID_BASE              (8U)
 
 #define BSP_CHECK_PORT                      (GPIOA)
