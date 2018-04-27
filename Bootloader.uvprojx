@@ -335,7 +335,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>SELECT_PILOT</Define>
+              <Define>STM32F031x6, SELECT_PILOT</Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
@@ -833,7 +833,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>SELECT_TORQUE</Define>
+              <Define>STM32F031x6, SELECT_TORQUE</Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
@@ -1331,7 +1331,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>SELECT_CAN</Define>
+              <Define>STM32F042x6, SELECT_CAN</Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
