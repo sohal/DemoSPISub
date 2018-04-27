@@ -134,7 +134,7 @@ eFUNCTION_RETURN Spi1Transmit(uint8_t *pTxData, uint16_t size)
 * @param[in]  size number of bytes
 * @returns    eFunction_Ok if successful
 *             or
-*             eFunction_Error if a timeout error occurs.
+*             eFunction_Error if timeout error occurs.
 *
 *******************************************************************************/
 eFUNCTION_RETURN Spi1Receive(uint8_t *pRxData, uint16_t size)
