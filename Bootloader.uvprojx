@@ -1511,12 +1511,14 @@
         <targetInfos>
           <targetInfo name="Release_CAN" versionMatchMode="fixed"/>
           <targetInfo name="Release_Pilot" versionMatchMode="fixed"/>
+          <targetInfo name="Release_Torque" versionMatchMode="fixed"/>
         </targetInfos>
       </package>
       <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.5.0">
         <targetInfos>
           <targetInfo name="Release_CAN" versionMatchMode="fixed"/>
           <targetInfo name="Release_Pilot" versionMatchMode="fixed"/>
+          <targetInfo name="Release_Torque" versionMatchMode="fixed"/>
         </targetInfos>
       </package>
     </packages>
