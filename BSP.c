@@ -26,16 +26,18 @@ static void TorqueSensorCoreClockInit(void);
 *******************************************************************************/
 tBSPStruct* BSP_Init(void)
 {
+    gIF.BSP_Type        = BSP_Unknown;
+
     gIF.pInit           = NULL;
     gIF.pSend           = NULL;
+    gIF.pRecv           = NULL;
     gIF.pReset          = NULL;
-    gIF.BSP_Type        = BSP_Unknown;
+
     gIF.BootTimeoutTicks= BootTIMEOUT;
     gIF.AppStartTicks   = BootTIMEOUT - 100000UL;
     gIF.CommDoneTicks   = 10000UL;
     gIF.TwoBytesTicks   = 300UL;
-    uint32_t temp_u32   = 0UL;
-    
+
 #if defined (SELECT_TORQUE)
     gIF.BSP_Type = BSP_TorqueSensor;
     #warning Torque Sensor is selected 
@@ -96,23 +98,22 @@ tBSPStruct* BSP_Init(void)
     {
         case BSP_Pilot:
             gIF.pInit   = &Usart1Init;
-            gIF.pRecv   = &Usart1Recv;
             gIF.pSend   = &Usart1Send;
+            gIF.pRecv   = &Usart1Recv;
             gIF.pReset  = &Usart1Reset;
             break;
         
         case BSP_TorqueSensor:
             gIF.pInit   = &Usart1Init;
-            gIF.pRecv   = &Usart1Recv;
             gIF.pSend   = &Usart1Send;
+            gIF.pRecv   = &Usart1Recv;
             gIF.pReset  = &Usart1Reset;
+            
             TorqueSensorCoreClockInit();
             break;
         
         case BSP_ExtWatchdog:
-            gIF.pInit   = NULL;
-            gIF.pRecv   = NULL;
-            gIF.pSend   = NULL;
+            // TODO implement me
             break;
         
         case BSP_CAN:
@@ -123,7 +124,7 @@ tBSPStruct* BSP_Init(void)
             break;
         
         default:
-            gIF.pInit   = NULL;
+            // TODO implement me
             break;
     }
   
@@ -133,7 +134,7 @@ tBSPStruct* BSP_Init(void)
      */
     SystemCoreClockUpdate();
     /* Now calculate by what factor has the system changed it's core clock */
-    temp_u32 = ( SystemCoreClock / BSP_ALLBOARD_HSI_FREQUENCY );
+    uint32_t temp_u32 = ( SystemCoreClock / BSP_ALLBOARD_HSI_FREQUENCY );
     
     gIF.AppStartTicks     *= temp_u32;
     gIF.CommDoneTicks     *= temp_u32;
