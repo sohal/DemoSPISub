@@ -6,97 +6,112 @@
 *******************************************************************************/
 
 /* ***************** Header / include files ( #include ) **********************/
+#include <stddef.h>
 #include "Can.h"
-#include "Gpio.h"
-#include "Timeout.h"
-#include "Command.h"
-#include <string.h>
-
+#if defined (SELECT_CAN)
 /* *************** Constant / macro definitions ( #define ) *******************/
-#define CAN_MAX_DATA_LENGTH  8
-#define CAN_ID_TRS           33
-#define CAN_ID_REV           11
-
-#define min(a,b) ((a)<(b)?(a):(b))
-
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
 /* *************** Modul global constants ( static const ) ********************/
 /* **************** Local func/proc prototypes ( static ) *********************/
-#if defined(STM32F042x6)
-static uint8_t firstMessage[CAN_MAX_DATA_LENGTH];
-static uint8_t firstMessageLen;
-static uint8_t firstMessageRead;
+static uint16_t index = 0U;
+static uint32_t TxPin = 0UL;
+static uint32_t RxPin = 0UL;
+static GPIO_TypeDef *pGPIO_CAN = NULL;
 /******************************************************************************/
 /**
 * void CanInit(void)
-* @brief Configure CAN (STM32F072_NUCLEO:PA11(RX),PA12(TX))
-*                      (STM32F042: ?? ??) and initialze variables.
+* @brief Configure CAN
 *
 *******************************************************************************/
-void CanInit(void)
+void CanInit(tBSPType BSPType)
 {
+    uint32_t canWait;
+
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
-    GPIOA->AFR[GPIO_PIN_11 >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)GPIO_PIN_11) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[GPIO_PIN_11 >> 3] |= ((uint32_t)(GPIO_AF_4) << ((uint32_t)(((uint32_t)GPIO_PIN_11) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[GPIO_PIN_12 >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)GPIO_PIN_12) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[GPIO_PIN_12 >> 3] |= ((uint32_t)(GPIO_AF_4) << ((uint32_t)(((uint32_t)GPIO_PIN_12) & (uint32_t)0x07) * 4));
+    TxPin = BSP_TARGET_CAN_TX_PIN;
+    RxPin = BSP_TARGET_CAN_RX_PIN;
+    pGPIO_CAN = BSP_TARGET_CAN_PORT;
 
-    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (GPIO_PIN_11 * 2));
-    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (GPIO_PIN_11 * 2));
-    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)GPIO_PIN_11));
-    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)GPIO_PIN_11));
-    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (GPIO_PIN_11 * 2));
-    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (GPIO_PIN_11 * 2));
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (GPIO_PIN_11 * 2));
-    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (GPIO_PIN_11 * 2));
+    pGPIO_CAN->AFR[TxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)TxPin & MASK3) << 2U));
+    pGPIO_CAN->AFR[TxPin >> 3] |= ((uint32_t)GPIO_AF_4 << (((uint32_t)TxPin & MASK3) << 2U));
 
-    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (GPIO_PIN_12 * 2));
-    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (GPIO_PIN_12 * 2));
-    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)GPIO_PIN_12));
-    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)GPIO_PIN_12));
-    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (GPIO_PIN_12 * 2));
-    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (GPIO_PIN_12 * 2));
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (GPIO_PIN_12 * 2));
-    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (GPIO_PIN_12 * 2));
+    pGPIO_CAN->AFR[RxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)RxPin & MASK3) << 2U));
+    pGPIO_CAN->AFR[RxPin >> 3] |= ((uint32_t)GPIO_AF_4 << (((uint32_t)RxPin & MASK3) << 2U));
 
+    pGPIO_CAN->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (TxPin << 1));
+    pGPIO_CAN->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (TxPin << 1));
+    pGPIO_CAN->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)TxPin));
+    pGPIO_CAN->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)TxPin));
+    pGPIO_CAN->MODER &= ~(GPIO_MODER_MODER0 << (TxPin << 1));
+    pGPIO_CAN->MODER |= ((uint32_t)GPIO_Mode_AF << (TxPin << 1));
+    pGPIO_CAN->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (TxPin << 1));
+    pGPIO_CAN->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (TxPin << 1));
+
+    pGPIO_CAN->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (RxPin << 1));
+    pGPIO_CAN->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (RxPin << 1));
+    pGPIO_CAN->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)RxPin));
+    pGPIO_CAN->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)RxPin));
+    pGPIO_CAN->MODER &= ~(GPIO_MODER_MODER0 << (RxPin << 1));
+    pGPIO_CAN->MODER |= ((uint32_t)GPIO_Mode_AF << (RxPin << 1));
+    pGPIO_CAN->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (RxPin << 1));
+    pGPIO_CAN->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (RxPin << 1));
+
+    /** Turn on clock for CAN */
     RCC->APB1ENR |= RCC_APB1ENR_CANEN;
-
-    // Enter init mode
-
-    CAN->MCR = CAN_MCR_INRQ;
-    while((CAN->MSR & CAN_MSR_INAK) == 0);
-
-    CAN->MCR |= CAN_MCR_NART;
-    //CAN->BTR = (2 << 20) | (3 << 16) | (7 << 0); // 125kbit at 8MHz
-    CAN->BTR = (2 << 20) | (3 << 16) | (1 << 0); // 500kbit at 8MHz
-
+    /** Enter CAN init mode to write configuration */
+    CAN->MCR |= CAN_MCR_INRQ;
+    /** Wait until we enter init mode */
+    /** Setup busy wait timer */
+    canWait = BootTIMEOUT;
+    while((CAN->MSR & CAN_MSR_INAK) == 0)
+    {
+        if(!(canWait--))
+        {
+            return;        /** Return if the busy wait timer expires todo needs a proper error code */
+        }
+    }
+    /** Exit sleep mode */
+    CAN->MCR &= ~CAN_MCR_SLEEP;
+    #if (BSP_BASE_CAN_BAUD == 500000U)
+    #warning CAN bus baud: 500k
+    /** loopback mode set timing to 500kBaud: BS1 = 4, BS2 = 3, prescaler = 1 */
+    CAN->BTR = (2 << 20) | (3 << 16) | (1 << 0);
+    #else
+    #warning CAN bus baud: 1M
+    /** loopback mode set timing to 1MBaud: BS1 = 4, BS2 = 3, prescaler = 0 */
+    CAN->BTR = (2 << 20) | (3 << 16) | (0 << 0);
+    #endif
+    /** Activate filter 0 */
     CAN->FMR |= CAN_FMR_FINIT;
-    CAN->FA1R &= ~CAN_FA1R_FACT0;  // deactivate filter
-    CAN->FS1R |= CAN_FS1R_FSC0;  // set 32-bit scale configuration
-    CAN->FM1R |= CAN_FM1R_FBM0;  // set two 32-bit identifier list mode
-    CAN->sFilterRegister[0].FR1 = (CAN_ID_REV << 21);  // standard ID
-    CAN->sFilterRegister[0].FR2 = (CAN_ID_REV << 21);
-//    CAN->sFilterRegister[0].FR1 = (CAN_ID_REV << 3) | (1 << 2);  // extended ID
-//    CAN->sFilterRegister[0].FR2 = (CAN_ID_REV << 3) | (1 << 2);
-    CAN->FFA1R &= ~CAN_FFA1R_FFA0;  // assign filter to FIFO 0
-    CAN->FA1R |= CAN_FA1R_FACT0;  // activate filter
+    /** Set the ID and mask (all bits of std id care */
+    CAN->FA1R |= CAN_FA1R_FACT0;
+    /** Set the ID and the mask */
+    CAN->sFilterRegister[0].FR1 = (BSP_TARGET_CAN_ID_BASE << 5) | (0xFF70U <<16);
+    /** Leave filter init */
     CAN->FMR &= ~CAN_FMR_FINIT;
-  // Leave init mode
-
+    /** Set FIFO0 message pending IT enabled */
+    CAN->IER |= CAN_IER_FMPIE0;
+    /** Come out of initialization */
     CAN->MCR &= ~CAN_MCR_INRQ;
-    while((CAN->MSR & CAN_MSR_INAK) != 0);
-    memset(firstMessage, 0, CAN_MAX_DATA_LENGTH);
-    firstMessageLen = 0;
-    firstMessageRead = 0;
+    /** Wait until we exit init mode */
+    /** Setup busy wait timer */
+    canWait = BootTIMEOUT;
+    while((CAN->MSR & CAN_MSR_INAK) != 0)
+    {
+        if(!(canWait--))
+        {
+            return;        /** Return if the busy wait timer expires */
+        }
+    }
 }
 
 /******************************************************************************/
 /**
-* void CanTransmit(uint8_t *pTxData, uint16_t size)
+* void CanSend(uint8_t *pTxData, uint16_t size)
 * @brief Implement CAN send.
 *
 * @param[in] pTxData pointer to the data to be transmitted
@@ -106,185 +121,153 @@ void CanInit(void)
 * LR                        HR
 * D3 D2 D1 D0               D7 D6 D5 D4
 *******************************************************************************/
-void CanTransmit(uint8_t *pTxData, uint16_t size)
+void CanSend(uint8_t *pTxData, uint16_t size)
 {
-    uint16_t numRound = 0;
-    uint32_t msgL = 0;
-    uint32_t msgH = 0;
-    while(size > 0)
-    {
-        uint16_t i;
-        uint8_t len = min(size, CAN_MAX_DATA_LENGTH);
-        for(i = 0; i < min(size, 4); i++)
+    uint32_t     i,iLimit;
+    tCANData     TxData;
+    uint16_t     tempindex = 0;
+    uint16_t     loop8Bytes;
+    uint32_t     canWait;
+
+    loop8Bytes = size / CAN_MAX_DATA_LENGTH;
+
+    do{
+        TxData.Word[0] = 0U;
+        TxData.Word[1] = 0U;
+
+        if(loop8Bytes)
         {
-            msgL = (uint32_t)((pTxData[i + (numRound * 8)] << (i * 8)) | msgL);
-        }
-        for(i = min(size, 4); i < len; i++)
+            loop8Bytes--;
+            iLimit = CAN_MAX_DATA_LENGTH;
+        }else
         {
-            msgH = (uint32_t)((pTxData[i + (numRound * 8)] << ((i - 4) * 8)) | msgH);
+            iLimit = size % CAN_MAX_DATA_LENGTH;
         }
-        while((CAN->TSR & CAN_TSR_TME0) == 0);  // wait until mailbox 0 is empty
-        CAN->sTxMailBox[0].TIR = (CAN_ID_TRS << 21);
-//    CAN->sTxMailBox[0].TIR = (CAN_ID_TRS << 3) | CAN_TI0R_IDE;
-        CAN->sTxMailBox[0].TDLR = msgL;
-        CAN->sTxMailBox[0].TDHR = msgH;
+
+        for(i = 0U; i< iLimit; i++)
+        {
+            TxData.Byte[i] = pTxData[tempindex++];
+        }
+
+        /** Setup busy wait timer */
+        canWait = BootTIMEOUT;
+        while((CAN->TSR & CAN_TSR_TME0) == 0)
+        {
+            if(!(canWait--))
+            {
+                return;        /** Return if the busy wait timer expires */
+            }
+        }
+
+        CAN->sTxMailBox[0].TDLR = TxData.Word[0];
+        CAN->sTxMailBox[0].TDHR = TxData.Word[1];
+
+        CAN->sTxMailBox[0].TIR = (BSP_TARGET_CAN_ID_BASE << 21);
+
         CAN->sTxMailBox[0].TDTR &= ~CAN_TDT0R_DLC;
-        CAN->sTxMailBox[0].TDTR |= len;
-        CAN->sTxMailBox[0].TIR |= CAN_TI0R_TXRQ;  // start transmission
-        while((CAN->TSR & CAN_TSR_RQCP0) == 0);  // wait until transmission completed
+
+        CAN->sTxMailBox[0].TDTR |= iLimit;
+
+        CAN->sTxMailBox[0].TIR |= CAN_TI0R_TXRQ;
+        /** Setup busy wait timer for transmission */
+        canWait = BootTIMEOUT;
+        while((CAN->TSR & CAN_TSR_RQCP0) == 0)
+        {
+            if(!(canWait--))
+            {
+                return;        /** Return if the busy wait timer expires */
+            }
+        }
+
         CAN->TSR |= CAN_TSR_RQCP0;
-        size -= len;
-        numRound++; 
-    }
+
+        size -= iLimit;
+    }while(size);
 }
 
 /******************************************************************************/
 /**
-* eFUNCTION_RETURN CanReceive(uint8_t *pRxData, uint16_t size)
+* eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 *
-* @brief Read from CAN.
+* @brief Read from CAN bus
 *
-* @param[out] pRxData pointer to data to receive
-* @param[in]  size number of bytes
+* @param[out] pRxData pointer to receive array buffer
+* @param[in]  size number of bytes to receive
 * @returns    eFunction_Ok if successful
 *             or
-*             eFunction_Error if timeout error or message id/length error occurs.
+*             eFunction_Error if data losts.
+*             or
+*             eFunction_Timeout if an timeout error occurs.
 *
-* CAN data format:
-* LR                        HR
-* D3 D2 D1 D0               D7 D6 D5 D4
 *******************************************************************************/
-eFUNCTION_RETURN CanReceive(uint8_t *pRxData, uint16_t size)
+eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 {
-    uint16_t sizeLoc = size;
-    uint8_t *pRxDataLoc = pRxData;
-    uint8_t retryCnt = 0; // retry counter, if it reachs 3, return timeout
-    uint8_t DataReceived = 0;
-    uint32_t id;
-    uint8_t len;
-    uint32_t msgL;
-    uint32_t msgH;
-    uint8_t msgLoc[CAN_MAX_DATA_LENGTH];
-    memset(msgLoc, 0, CAN_MAX_DATA_LENGTH);
-    if (firstMessageRead)
+    eFUNCTION_RETURN retVal = eFunction_Timeout;
+    uint32_t    temp32U = 0U;
+    uint32_t    i;
+    tCANData     RxData;
+
+    if((CAN->RF0R & CAN_RF0R_FMP0) != 0U)
     {
-        memcpy(pRxDataLoc, firstMessage, firstMessageLen);
-        pRxDataLoc += firstMessageLen;
-        sizeLoc -= firstMessageLen;
-        size -= firstMessageLen;
-        pRxData += firstMessageLen;
-        firstMessageRead = 0;
-        DataReceived = 1;
-    }
-    while(sizeLoc > 0)
-    {
-        uint32_t i = 0;
-        while((i++ < PACKET_TIMEOUT_CAN_MS) && ((CAN->RF0R & CAN_RF0R_FMP0) == 0));
-        if(CAN->RF0R & CAN_RF0R_FMP0)
+        /** Read the FIFO */
+        RxData.Word[0] = CAN->sFIFOMailBox[0].RDLR;
+        RxData.Word[1] = CAN->sFIFOMailBox[0].RDHR;
+        /** Get the ID from the receive mailbox fifo */
+        if((CAN->sFIFOMailBox[0].RIR & CAN_RI0R_IDE) == 0)
         {
-            if((CAN->sFIFOMailBox[0].RIR & CAN_RI0R_IDE) == 0)
-            {
-                id = CAN->sFIFOMailBox[0].RIR >> 21;
-            }
-            else
-            {
-                id = CAN->sFIFOMailBox[0].RIR >> 3;
-            }
-            if(id != CAN_ID_REV)
-            {
-                return eFunction_Error;
-            }
-            len = CAN->sFIFOMailBox[0].RDTR & 0xf; // current message length
-            msgL = CAN->sFIFOMailBox[0].RDLR;
-            msgH = CAN->sFIFOMailBox[0].RDHR;
-            CAN->RF0R |= CAN_RF0R_RFOM0;
-            msgLoc[0] = msgL & 0x000000FF;
-            msgLoc[1] = (msgL >> 8) & 0x000000FF;
-            msgLoc[2] = (msgL >> 16) & 0x000000FF;
-            msgLoc[3] = (msgL >> 24) & 0x000000FF;
-            msgLoc[4] = msgH & 0x000000FF;
-            msgLoc[5] = (msgH >> 8) & 0x000000FF;
-            msgLoc[6] = (msgH >> 16) & 0x000000FF;
-            msgLoc[7] = (msgH >> 24) & 0x000000FF;
-            memcpy(pRxDataLoc, msgLoc, len); // only copy the real length, the rest is rubbish
-            pRxDataLoc += len;
-            retryCnt = 0;
-            sizeLoc -= len;
-            DataReceived = 1;
+            temp32U = CAN->sFIFOMailBox[0].RIR >> 21U;
+        }else
+        {
+            temp32U = CAN->sFIFOMailBox[0].RIR >> 3U;
         }
-        else
+        /** Check if ID is matching our ID */
+        if(temp32U != BSP_TARGET_CAN_ID_BASE)
         {
-            sizeLoc = size;
-            pRxDataLoc = pRxData;
-            CAN->RF0R &= ~CAN_RF0R_FOVR0; // clear overrun flag
-            if(retryCnt++ >= 3)
+            // retVal = eFunction_Error;
+        }else
+        {
+            /** Get the current message length from DLC [3:0] */
+            temp32U = CAN->sFIFOMailBox[0].RDTR & 0x000FU;
+
+            /** The number of bytes should not be more than 8 bytes */
+            if(temp32U <= CAN_MAX_DATA_LENGTH)
             {
-                if (DataReceived)
+                for(i = 0; i < temp32U; i++)
                 {
-                    // data lost
-                    return eFunction_Error;
+                    pRxData[index] = RxData.Byte[i];
+                    index++;
+                    /** If we have received all expected bytes */
+                    if(index >= size)
+                    {
+                        /** Reset counter and exit successfully */
+                        index = 0;
+                        retVal = eFunction_Ok;
+                        break;
+                    }
                 }
-                else
-                {
-                    // polling timeout
-                    return eFunction_Timeout;
-                }
+            }else
+            {
+                retVal = eFunction_Error;
             }
         }
+        /** Release FIFO */
+        CAN->RF0R |= CAN_RF0R_RFOM0;
     }
-    return eFunction_Ok;
+
+  return retVal;
 }
 
 /******************************************************************************/
 /**
-* uint8_t CanMsgReceived(void)
+* void CanReset(void)
 *
-* @brief Check if there is any data on bus. Read the first CAN message out.
-*        The message size can be up to 8 bytes. Only the first firstMessageLen
-*        bytes are the valid data.
+* @brief Reset receive pointer index
 *
-* @returns    1 if there is message on bus.
-*             or
-*             0 if there is nothing.
+* @returns    none
 *
 *******************************************************************************/
-uint8_t CanMsgReceived(void)
+inline void CanReset(void)
 {
-    uint32_t msgL;
-    uint32_t msgH;
-    uint32_t id;
-    if(CAN->RF0R & CAN_RF0R_FMP0)
-    {
-        if((CAN->sFIFOMailBox[0].RIR & CAN_RI0R_IDE) == 0)
-        {
-            id = CAN->sFIFOMailBox[0].RIR >> 21;
-        }
-        else
-        {
-            id = CAN->sFIFOMailBox[0].RIR >> 3;
-        }
-        if(id != CAN_ID_REV)
-        {
-            return 0;
-        }
-        firstMessageLen = CAN->sFIFOMailBox[0].RDTR & 0xf;
-        msgL = CAN->sFIFOMailBox[0].RDLR;
-        msgH = CAN->sFIFOMailBox[0].RDHR;
-        CAN->RF0R |= CAN_RF0R_RFOM0;
-        firstMessage[0] = msgL & 0x000000FF;
-        firstMessage[1] = (msgL >> 8) & 0x000000FF;
-        firstMessage[2] = (msgL >> 16) & 0x000000FF;
-        firstMessage[3] = (msgL >> 24) & 0x000000FF;
-        firstMessage[4] = msgH & 0x000000FF;
-        firstMessage[5] = (msgH >> 8) & 0x000000FF;
-        firstMessage[6] = (msgH >> 16) & 0x000000FF;
-        firstMessage[7] = (msgH >> 24) & 0x000000FF;
-        firstMessageRead = 1;
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    index = 0;
 }
 #endif

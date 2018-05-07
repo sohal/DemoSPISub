@@ -10,22 +10,25 @@
 /* ***************** Header / include files ( #include ) **********************/
 #include <stdint.h>
 #include "CRC.h"
-
+#include "Common.h"
+#include "BSP.h"
+#include "Packet.h"
 /* *************** Constant / macro definitions ( #define ) *******************/
-#define FLASH_PROGRAM_START_ADDRESS 0x08001000
 /* ********************* Type definitions ( typedef ) *************************/
+typedef struct myFlash{
+    uint32_t    CRCinFlash;
+    uint32_t    LENinFlash;
+    uint32_t    TOTALPages;
+}tFlashLimits;
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
 /*******************************************************************************/
-void FlashInit(void);
-uint8_t FlashWrite(uint8_t* buf, uint16_t size);
-uint8_t FlashVerify(uint8_t* buf, uint16_t size);
+void FlashInit(tBSPType BSPType);
+uint8_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo);
 uint8_t FlashErase(void);
-uint8_t FlashIsErased(void);
 void FlashLock(void);
 uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam);
-uint8_t FlashVerifyFWParam(tFIRMWARE_PARAM fwParam);
 uint8_t FlashVerifyFirmware(void);
 
 #endif

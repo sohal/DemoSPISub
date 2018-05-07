@@ -6,90 +6,107 @@
 *******************************************************************************/
 
 /* ***************** Header / include files ( #include ) **********************/
+#include <stddef.h>
 #include "Usart1.h"
-#include "Gpio.h"
-#include "Timeout.h"
-
+#if defined (SELECT_TORQUE) || defined (SELECT_PILOT)
+    
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static uint8_t firstByte;
-static uint8_t firstByteRead;
-
+static uint16_t index = 0U;
+static uint32_t TxPin = 0UL;
+static uint32_t RxPin = 0UL;
+static uint32_t Baud = 0UL;
+static GPIO_TypeDef *pGPIO_USART = NULL;
 /* *************** Modul global constants ( static const ) ********************/
-/* **************** Local func/proc prototypes ( static ) *********************/
 
+/* **************** Local func/proc prototypes ( static ) *********************/
 /******************************************************************************/
 /**
-* void Usart1Init(void)
-* @brief Configure USART1 (STM32F031:PA2(TX),PA15(RX)) and initialze variables.
+* void Usart1Init(tBSPType)
+* @brief Configure USART1 according to board type and initialze variables.
+*         pin values for rx and tx are specified in respective BSP macros.
+* @param[in] tBSPType The type of target to be configured according to BSP, Only serial
+*              based bsp types handled.
 *
 *******************************************************************************/
-void Usart1Init(void)
+void Usart1Init(tBSPType BSPType)
 {
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
-    GPIOA->AFR[GPIO_PIN_2 >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)GPIO_PIN_2) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[GPIO_PIN_2 >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)GPIO_PIN_2) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[GPIO_PIN_15 >> 3] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)GPIO_PIN_15) & (uint32_t)0x07) * 4));
-    GPIOA->AFR[GPIO_PIN_15 >> 3] |= ((uint32_t)(GPIO_AF_1) << ((uint32_t)(((uint32_t)GPIO_PIN_15) & (uint32_t)0x07) * 4));
+    switch(BSPType)
+    {
+        case BSP_Pilot:
+            TxPin = BSP_PILOT_UART_TX_PIN;
+            RxPin = BSP_PILOT_UART_RX_PIN;
+            Baud  = BSP_PILOT_UART_BAUD;
+            pGPIO_USART = BSP_PILOT_UART_PORT;
+            break;
 
-    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (GPIO_PIN_2 * 2));
-    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (GPIO_PIN_2 * 2));
-    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)GPIO_PIN_2));
-    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)GPIO_PIN_2));
-    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (GPIO_PIN_2 * 2));
-    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (GPIO_PIN_2 * 2));
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (GPIO_PIN_2 * 2));
-    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (GPIO_PIN_2 * 2));
+        case BSP_TorqueSensor:
+        default:
+            TxPin = BSP_TORQUE_UART_TX_PIN;
+            RxPin = BSP_TORQUE_UART_RX_PIN;
+            Baud  = BSP_TORQUE_UART_BAUD;
+            pGPIO_USART = BSP_TORQUE_UART_PORT;
+            break;
+    }
 
-    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (GPIO_PIN_15 * 2));
-    GPIOA->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (GPIO_PIN_15 * 2));
-    GPIOA->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)GPIO_PIN_15));
-    GPIOA->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)GPIO_PIN_15));
-    GPIOA->MODER &= ~(GPIO_MODER_MODER0 << (GPIO_PIN_15 * 2));
-    GPIOA->MODER |= ((uint32_t)GPIO_Mode_AF << (GPIO_PIN_15 * 2));
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (GPIO_PIN_15 * 2));
-    GPIOA->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (GPIO_PIN_15 * 2));
+    pGPIO_USART->AFR[TxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)TxPin & MASK3) << 2U));
+    pGPIO_USART->AFR[TxPin >> 3] |= ((uint32_t)GPIO_AF_1 << (((uint32_t)TxPin & MASK3) << 2U));
+
+    pGPIO_USART->AFR[RxPin >> 3] &= ~((uint32_t)MASK4 << (((uint32_t)RxPin & MASK3) << 2U));
+    pGPIO_USART->AFR[RxPin >> 3] |= ((uint32_t)GPIO_AF_1 << (((uint32_t)RxPin & MASK3) << 2U));
+
+    pGPIO_USART->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (TxPin << 1));
+    pGPIO_USART->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (TxPin << 1));
+    pGPIO_USART->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)TxPin));
+    pGPIO_USART->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)TxPin));
+    pGPIO_USART->MODER &= ~(GPIO_MODER_MODER0 << (TxPin << 1));
+    pGPIO_USART->MODER |= ((uint32_t)GPIO_Mode_AF << (TxPin << 1));
+    pGPIO_USART->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (TxPin << 1));
+    pGPIO_USART->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (TxPin << 1));
+
+    pGPIO_USART->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (RxPin << 1));
+    pGPIO_USART->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (RxPin << 1));
+    pGPIO_USART->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)RxPin));
+    pGPIO_USART->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)RxPin));
+    pGPIO_USART->MODER &= ~(GPIO_MODER_MODER0 << (RxPin << 1));
+    pGPIO_USART->MODER |= ((uint32_t)GPIO_Mode_AF << (RxPin << 1));
+    pGPIO_USART->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (RxPin << 1));
+    pGPIO_USART->PUPDR |= ((uint32_t)GPIO_PuPd_UP << (RxPin << 1));
 
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
-    //  RCC->CFGR3 &= ~3;
-    //  RCC->CFGR3 |= 0;  // USART1 Clock Source = PCLK
-
-    //USART1->BRR = __USART_BRR(8000000UL, 9600);  // 8MHz, 9600 baud
-    //USART1->BRR = __USART_BRR(8000000UL, 115200);  // 8MHz, 115200 baud
-    USART1->BRR = __USART_BRR(8000000UL, 460800);  // 8MHz, 460800 baud
+    USART1->BRR = __USART_BRR(SystemCoreClock, Baud);  
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;  // 8N1
-    firstByte = 0;
-    firstByteRead = 0;
 }
 
 /******************************************************************************/
 /**
-* void Usart1Transmit(uint8_t *pTxData, uint16_t size)
+* void Usart1Send(uint8_t *pTxData, uint16_t size)
 * @brief Implement usart1 send.
 *
 * @param[in] pTxData pointer to the data to be transmitted
 * @param[in] size number of bytes
 *
 *******************************************************************************/
-void Usart1Transmit(uint8_t *pTxData, uint16_t size)
+void Usart1Send(uint8_t *pTxData, const uint16_t size)
 {
-    while(size > 0)
+    uint16_t i = 0U;
+    while(i < size)
     {
-        size--;
         while((USART1->ISR & USART_ISR_TXE) == 0);
-        USART1->TDR = *pTxData++;
+        USART1->TDR = pTxData[i++];
     }
 }
 
 /******************************************************************************/
 /**
-* eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, uint16_t size)
+* eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, uint16_t size)
 *
-* @brief Read from UART. It will retry 3 times in case of failure.
+* @brief Read from UART. 
 *
 * @param[out] pRxData pointer to 68 bytes data
 * @param[in]  size number of bytes
@@ -100,79 +117,37 @@ void Usart1Transmit(uint8_t *pTxData, uint16_t size)
 *             eFunction_Timeout if an timeout error occurs.
 *
 *******************************************************************************/
-eFUNCTION_RETURN Usart1Receive(uint8_t *pRxData, uint16_t size)
+eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, const uint16_t size)
 {
-    uint16_t sizeLoc = size;
-    uint8_t *pRxDataLoc = pRxData;
-    uint8_t retryCnt = 0; // retry counter, if it reachs 3, return timeout
-    uint8_t DataReceived = 0;
-    if (firstByteRead)
+    eFUNCTION_RETURN retVal = eFunction_Timeout;
+    
+    if(USART1->ISR & USART_ISR_RXNE)
     {
-        *pRxDataLoc = firstByte;
-        pRxDataLoc++;
-        sizeLoc--;
-        size--;
-        pRxData++;
-        firstByteRead = 0;
-        DataReceived = 1;
+        pRxData[index] = USART1->RDR;
+        index++;
     }
-    while(sizeLoc > 0)
+    
+    if(index >= size)
     {
-        uint32_t i = 0;
-        while((i++ < PACKET_TIMEOUT_UART_MS) && ((USART1->ISR & USART_ISR_RXNE) == 0));
-        if ((USART1->ISR & USART_ISR_RXNE) != 0)
-        {
-            *pRxDataLoc = USART1->RDR;
-            pRxDataLoc++;
-            retryCnt = 0;
-            sizeLoc--;
-            DataReceived = 1;
-        }
-        else
-        {
-            sizeLoc = size;
-            pRxDataLoc = pRxData;
-            USART1->ICR = USART_ICR_ORECF; // clear overrun flag
-            if(retryCnt++ >= 3)
-            {
-                if (DataReceived)
-                {
-                    // data lost
-                    return eFunction_Error;
-                }
-                else
-                {
-                    // polling timeout
-                    return eFunction_Timeout;
-                }
-            }
-        }
+        index = 0;
+        retVal = eFunction_Ok;
     }
-    return eFunction_Ok;
+    return retVal;
 }
 
 /******************************************************************************/
 /**
-* uint8_t Usart1ByteReceived(void)
+* void Usart1Reset(void)
 *
-* @brief Check if there is any data on bus. Read the first byte out.
-*        Fetch a byte takes ~2 us with 9600 baudrate.
+* @brief Reset receive pointer index
 *
-* @returns    1 if there is a byte on bus.
-*             or
-*             0 if there is nothing.
+* @returns    none
 *
 *******************************************************************************/
-uint8_t Usart1ByteReceived(void)
+inline void Usart1Reset(void)
 {
-    if(USART1->ISR & USART_ISR_RXNE)
-    {
-        firstByte = USART1->RDR;
-        firstByteRead = 1;
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    index = 0;
 }
+
+#endif
+
