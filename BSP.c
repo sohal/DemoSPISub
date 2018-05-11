@@ -5,11 +5,15 @@
 *
 *******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
+
 #include <stddef.h>
-#include "BSP.h"
+
 #include "Can.h"
 #include "Flash.h"
 #include "Usart1.h"
+
+#include "BSP.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
