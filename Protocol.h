@@ -8,14 +8,14 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 /* ***************** Header / include files ( #include ) **********************/
+
 #include <stdint.h>
-#include <stddef.h>
-#include "Common.h"
-#include "Usart1.h"
-#include "Command.h"
-#include "Flash.h"
-#include "Packet.h"
+
 #include "BSP.h"
+#include "Common.h"
+#include "Command.h"
+#include "Packet.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 typedef union myCmd{
