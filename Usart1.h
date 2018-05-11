@@ -8,10 +8,12 @@
 #define USART1_H
 
 /* ***************** Header / include files ( #include ) **********************/
-#include "stm32f0xx.h"
-#include "Common.h"
-#include "Gpio.h"
+
+#include <stm32f0xx.h>
+
 #include "BSP.h"
+#include "Common.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 #define __DIV(__PCLK, __BAUD)       ((__PCLK*25)/(4*__BAUD))
 #define __DIVMANT(__PCLK, __BAUD)   (__DIV(__PCLK, __BAUD)/100)
