@@ -9,6 +9,8 @@
 
 #include <stddef.h>
 
+#include "Gpio.h"
+
 #include "Usart1.h"
 
 #if defined (SELECT_TORQUE) || defined (SELECT_PILOT)
