@@ -8,6 +8,7 @@
 
 /* ***************** Header / include files ( #include ) **********************/
 
+#include "CRC.h"
 #include "Flash.h"
 
 #include "Protocol.h"
