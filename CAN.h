@@ -4,8 +4,11 @@
 * @brief Implement CAN
 *
 *******************************************************************************/
-#ifndef CAN_H
-#define CAN_H
+
+#if defined(SELECT_CAN)
+
+#ifndef CAN_H_
+#define CAN_H_
 
 /* ***************** Header / include files ( #include ) **********************/
 #include "stm32f0xx.h"
@@ -28,4 +31,7 @@ void CanInit(tBSPType BSPType);
 void CanSend(uint8_t *pTxData, uint16_t size);
 void CanReset(void);
 eFUNCTION_RETURN CanRecv(uint8_t *pRxData, uint16_t size);
-#endif
+
+#endif // CAN_H_
+
+#endif // SELECT_CAN
