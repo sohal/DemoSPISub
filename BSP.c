@@ -21,6 +21,8 @@
 /* ***************** Modul global data segment ( static ) *********************/
 static tBSPStruct gIF;
 static void TorqueSensorCoreClockInit(void);
+static void WatchdogCoreClockInit(void);
+static void WatchdogGPIOInit(void);
 /******************************************************************************/
 /**
 * tBSPStruct* BSP_Init(void)
@@ -78,6 +80,13 @@ tBSPStruct* BSP_Init(void)
     gIF.pRecv   = &CanRecv;
     gIF.pSend   = &CanSend;
     gIF.pReset  = &CanReset;
+
+#elif defined (SELECT_WATCHDOG)
+
+    #warning Watchdog (SPI) selected
+
+    WatchdogCoreClockInit();
+    WatchdogGPIOInit();
 
 #else
 
@@ -152,7 +161,8 @@ tBSPStruct* BSP_Init(void)
             break;
 
         case BSP_ExtWatchdog:
-            // TODO implement me
+            WatchdogCoreClockInit();
+            
             break;
 
         case BSP_CAN:
@@ -163,7 +173,7 @@ tBSPStruct* BSP_Init(void)
             break;
 
         default:
-            // TODO implement me
+            /* TODO implement me */
             break;
     }
     
@@ -179,7 +189,7 @@ tBSPStruct* BSP_Init(void)
             break;
 
         default:
-            // nothing to init
+            /* nothing to init */
             break;
     }
 
@@ -237,5 +247,79 @@ void TorqueSensorCoreClockInit(void)
     RCC->CFGR &= ~RCC_CFGR_SW;                               /* Select PLL as system clock source */
     RCC->CFGR |=  RCC_CFGR_SW_PLL;
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);  /* Wait till PLL is system clock src */
+}
+
+/******************************************************************************/
+/**
+void WatchdogCoreClockInit(void)
+* @brief additional clock configuration required for matching baudrate for 
+* external watchdog
+*
+*******************************************************************************/
+void WatchdogCoreClockInit(void)
+{
+    RCC->CR |= ((uint32_t)RCC_CR_HSION);                     /* Enable HSI */
+    while ((RCC->CR & RCC_CR_HSIRDY) == 0);                  /* Wait for HSI Ready */
+
+    RCC->CFGR = RCC_CFGR_SW_HSI;                             /* HSI is system clock */
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI);  /* Wait for HSI used as system clock */
+
+    FLASH->ACR  = FLASH_ACR_PRFTBE;                          /* Enable Prefetch Buffer */
+    FLASH->ACR |= FLASH_ACR_LATENCY;                         /* Flash 1 wait state */
+
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;                         /* HCLK = SYSCLK */
+    RCC->CFGR |= RCC_CFGR_PPRE_DIV1;                         /* PCLK = HCLK */
+
+    RCC->CR &= ~RCC_CR_PLLON;                                /* Disable PLL */
+
+    /*  PLL configuration:  = HSI/2 * 12 = 48 MHz */
+    RCC->CFGR &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMUL);
+    RCC->CFGR |=  (RCC_CFGR_PLLSRC_HSI_DIV2 | RCC_CFGR_PLLMUL12);
+
+    RCC->CR |= RCC_CR_PLLON;                                 /* Enable PLL */
+    while((RCC->CR & RCC_CR_PLLRDY) == 0) __NOP();           /* Wait till PLL is ready */
+
+    RCC->CFGR &= ~RCC_CFGR_SW;                               /* Select PLL as system clock source */
+    RCC->CFGR |=  RCC_CFGR_SW_PLL;
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);  /* Wait till PLL is system clock src */
+    
+    SystemCoreClockUpdate();
+}
+
+/******************************************************************************/
+/**
+void WatchdogGPIOInit(void)
+* @brief additional gpio settings for external watchdog
+*
+*******************************************************************************/
+void WatchdogGPIOInit(void)
+{
+    /* enable GPIOA and GPIOB clock */
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
+
+    /* Configure BSP_BRAKE_PIN pin as push-pull output, No pull-up, pull-down */ 
+    GPIOA->MODER   &= ~((3UL << 2*BSP_BRAKE_PIN));
+    GPIOA->MODER   |=  ((1UL << 2*BSP_BRAKE_PIN));
+    GPIOA->OTYPER  &= ~((1UL <<   BSP_BRAKE_PIN));
+    GPIOA->OSPEEDR &= ~((3UL << 2*BSP_BRAKE_PIN));
+    GPIOA->OSPEEDR |=  ((1UL << 2*BSP_BRAKE_PIN));
+    GPIOA->PUPDR   &= ~((3UL << 2*BSP_BRAKE_PIN));
+
+    /* Configure BSP_STO_PIN, BSP_MCU_PIN and BSP_ET1100_PIN pins as push-pull outputs, No pull-up, pull-down */
+    GPIOB->MODER   &= ~((3UL << 2*BSP_STO_PIN) | (3UL << 2*BSP_PWM_PIN) | (3UL << 2*BSP_MCU_PIN) | (3UL << 2*BSP_ET1100_PIN));
+    GPIOB->MODER   |=  ((1UL << 2*BSP_STO_PIN) | (1UL << 2*BSP_PWM_PIN) | (1UL << 2*BSP_MCU_PIN) | (1UL << 2*BSP_ET1100_PIN));
+    GPIOB->OTYPER  &= ~((1UL <<   BSP_STO_PIN) | (1UL <<   BSP_PWM_PIN) | (1UL <<   BSP_MCU_PIN) | (1UL <<   BSP_ET1100_PIN));
+    GPIOB->OSPEEDR &= ~((3UL << 2*BSP_STO_PIN) | (3UL << 2*BSP_PWM_PIN) | (3UL << 2*BSP_MCU_PIN) | (3UL << 2*BSP_ET1100_PIN));
+    GPIOB->OSPEEDR |=  ((1UL << 2*BSP_STO_PIN) | (1UL << 2*BSP_PWM_PIN) | (1UL << 2*BSP_MCU_PIN) | (1UL << 2*BSP_ET1100_PIN));
+    GPIOB->PUPDR   &= ~((3UL << 2*BSP_STO_PIN) | (3UL << 2*BSP_PWM_PIN) | (3UL << 2*BSP_MCU_PIN) | (3UL << 2*BSP_ET1100_PIN));
+
+    while (1)
+    {
+        /* release brake -> i.e. transfer control to Hercules */
+        GPIOA->BSRR |= (1 << BSP_BRAKE_PIN);
+
+        /* enable PWM control by Hercules, release Hercules reset and ET1100 reset */
+        GPIOB->BSRR |= (1 << BSP_STO_PIN) | (1 << BSP_PWM_PIN) | ((1 << BSP_MCU_PIN) << 16) | ((1 << BSP_ET1100_PIN) << 16);
+    }
 }
 

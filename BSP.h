@@ -81,6 +81,12 @@
 #define BSP_CHECK_PORT                      (GPIOA)
 #define BSP_CHECK_PIN_6                     (6U)
 #define BSP_CHECK_PIN_7                     (7U)
+
+#define BSP_BRAKE_PIN                       (7U)
+#define BSP_STO_PIN                         (0U)
+#define BSP_PWM_PIN                         (1U)
+#define BSP_MCU_PIN                         (6U)
+#define BSP_ET1100_PIN                      (7U)
 /* ********************* Type definitions ( typedef ) *************************/
 typedef enum bsptype {
     BSP_Unknown,
