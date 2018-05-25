@@ -19,8 +19,8 @@ static uint8_t firstByte;
 static uint8_t firstByteRead;
 static uint16_t index = 0U;
 /* *************** Modul global constants ( static const ) ********************/
-static const uint32_t TIMEOUT_1s = 8000000U;
-static const uint16_t PACKET_TIMEOUT_SPI_MS = 1500U;
+static const uint32_t TIMEOUT_1s = 1000U;
+static const uint16_t PACKET_TIMEOUT_SPI_MS = 100U;
 /* **************** Local func/proc prototypes ( static ) *********************/
 static void SpiDelay160us(void);
 
@@ -97,34 +97,35 @@ void SpiInit(tBSPType BSPType)
 *******************************************************************************/
 void SpiSend(uint8_t *pTxData, uint16_t size)
 {
-    uint8_t tmp;
-    uint16_t sizeLoc = size;
-    uint32_t i = 0;
-    eFUNCTION_RETURN ret;
-    while(size-- > 0)
-    {
-        while((SPI1->SR & SPI_SR_TXE) == 0);
-        *(uint8_t *)&(SPI1->DR) = (uint8_t)*pTxData++;
-    }
-    while((i++ < TIMEOUT_1s) && ((SPI1->SR & SPI_SR_FTLVL) != 0));
-    /* The  goes to 0 after the first bit of the last byte is
-     * send out, so we need to wait another 7 bits plus the time
-     * till CS goes high. This takes 160 us with SPI bit rate 100000.   */
-    SpiDelay160us();
-    while (sizeLoc-- > 0) // flush Rx FIFO as it was filled with dummy data for Tx.
-    {      
-        tmp = SPI1->DR;
-        tmp = SPI1->SR;
-    }
-    if((SPI1->SR & SPI_SR_FTLVL) == 0)
-    {
-        ret = eFunction_Ok;
-    }
-    else
-    {
-        ret = eFunction_Timeout;
-    }
-    (void)ret;
+//    uint8_t tmp;
+//    uint16_t sizeLoc = size;
+//    static uint32_t i = 0;
+//    eFUNCTION_RETURN ret;
+//    while(size-- > 0)
+//    {
+//        uint32_t i = 0;
+//        while((i++ < 5U) && (SPI1->SR & SPI_SR_TXE) == 0);
+//        *(uint8_t *)&(SPI1->DR) = (uint8_t)*pTxData++;
+//    }
+//    while((i++ < TIMEOUT_1s) && ((SPI1->SR & SPI_SR_FTLVL) != 0));
+//    /* The  goes to 0 after the first bit of the last byte is
+//     * send out, so we need to wait another 7 bits plus the time
+//     * till CS goes high. This takes 160 us with SPI bit rate 100000.   */
+//    SpiDelay160us();
+//    while (sizeLoc-- > 0) // flush Rx FIFO as it was filled with dummy data for Tx.
+//    {      
+//        tmp = SPI1->DR;
+//        tmp = SPI1->SR;
+//    }
+//    if((SPI1->SR & SPI_SR_FTLVL) == 0)
+//    {
+//        ret = eFunction_Ok;
+//    }
+//    else
+//    {
+//        ret = eFunction_Timeout;
+//    }
+//    (void)ret;
 }
 
 /******************************************************************************/
@@ -147,49 +148,49 @@ eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size)
     uint8_t *pRxDataLoc = pRxData;
     uint8_t retryCnt = 0; // retry counter, if it reachs 3, return timeout
     uint8_t DataReceived = 0;
-    if(firstByteRead)
-    {
-        *pRxDataLoc = firstByte;
-        pRxDataLoc++;
-        sizeLoc--;
-        size--;
-        pRxData++;
-        firstByteRead = 0;
-        DataReceived = 1;
-    }
-    while(sizeLoc > 0)
-    {
-        uint32_t i = 0;        
-        while((i++ < PACKET_TIMEOUT_SPI_MS) && ((SPI1->SR & SPI_SR_RXNE) == 0));
-        if ((SPI1->SR & SPI_SR_RXNE) != 0)
-        {
-            *pRxDataLoc = SPI1->DR;
-            pRxDataLoc++;
-            retryCnt = 0;
-            sizeLoc--;
-            DataReceived = 1;
-        }
-        else
-        {
-            sizeLoc = size;
-            pRxDataLoc = pRxData;
-            tmp = SPI1->DR; // clear overrun flag
-            tmp = SPI1->SR; // clear overrun flag
-            if(retryCnt++ >= 3)
-            {
-                if (DataReceived)
-                {
-                    // data lost
-                    return eFunction_Error;
-                }
-                else
-                {          
-                    // polling timeout
-                    return eFunction_Timeout;
-                }
-            }
-        }
-    }
+//    if(firstByteRead)
+//    {
+//        *pRxDataLoc = firstByte;
+//        pRxDataLoc++;
+//        sizeLoc--;
+//        size--;
+//        pRxData++;
+//        firstByteRead = 0;
+//        DataReceived = 1;
+//    }
+//    while(sizeLoc > 0)
+//    {
+//        uint32_t i = 0;        
+//        while((i++ < /*PACKET_TIMEOUT_SPI_MS*/ 5U) && ((SPI1->SR & SPI_SR_RXNE) == 0));
+//        if ((SPI1->SR & SPI_SR_RXNE) != 0)
+//        {
+//            *pRxDataLoc = SPI1->DR;
+//            pRxDataLoc++;
+//            retryCnt = 0;
+//            sizeLoc--;
+//            DataReceived = 1;
+//        }
+//        else
+//        {
+//            sizeLoc = size;
+//            pRxDataLoc = pRxData;
+//            tmp = SPI1->DR; // clear overrun flag
+//            tmp = SPI1->SR; // clear overrun flag
+//            if(retryCnt++ >= 3)
+//            {
+//                if (DataReceived)
+//                {
+//                    // data lost
+//                    return eFunction_Error;
+//                }
+//                else
+//                {          
+//                    // polling timeout
+//                    return eFunction_Timeout;
+//                }
+//            }
+//        }
+//    }
     return eFunction_Ok;
 }
 

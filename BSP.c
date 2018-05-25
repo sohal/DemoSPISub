@@ -84,7 +84,6 @@ tBSPStruct* BSP_Init(void)
 #elif defined (SELECT_WATCHDOG)
 
     #warning Watchdog (SPI) selected
-
     WatchdogCoreClockInit();
     WatchdogGPIOInit();
     
@@ -167,7 +166,12 @@ tBSPStruct* BSP_Init(void)
 
         case BSP_ExtWatchdog:
             WatchdogCoreClockInit();
+            WatchdogGPIOInit();
             
+            gIF.pInit   = &SpiInit;
+            gIF.pRecv   = &SpiRecv;
+            gIF.pSend   = &SpiSend;
+            gIF.pReset  = &SpiReset;
             break;
 
         case BSP_CAN:
@@ -287,8 +291,6 @@ void WatchdogCoreClockInit(void)
     RCC->CFGR &= ~RCC_CFGR_SW;                               /* Select PLL as system clock source */
     RCC->CFGR |=  RCC_CFGR_SW_PLL;
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);  /* Wait till PLL is system clock src */
-    
-    SystemCoreClockUpdate();
 }
 
 /******************************************************************************/
@@ -318,13 +320,11 @@ void WatchdogGPIOInit(void)
     GPIOB->OSPEEDR |=  ((1UL << 2*BSP_STO_PIN) | (1UL << 2*BSP_PWM_PIN) | (1UL << 2*BSP_MCU_PIN) | (1UL << 2*BSP_ET1100_PIN));
     GPIOB->PUPDR   &= ~((3UL << 2*BSP_STO_PIN) | (3UL << 2*BSP_PWM_PIN) | (3UL << 2*BSP_MCU_PIN) | (3UL << 2*BSP_ET1100_PIN));
 
-    while (1)
-    {
-        /* release brake -> i.e. transfer control to Hercules */
-        GPIOA->BSRR |= (1 << BSP_BRAKE_PIN);
+    /* release brake -> i.e. transfer control to Hercules */
+    GPIOA->BSRR |= (1 << BSP_BRAKE_PIN);
 
-        /* enable PWM control by Hercules, release Hercules reset and ET1100 reset */
-        GPIOB->BSRR |= (1 << BSP_STO_PIN) | (1 << BSP_PWM_PIN) | ((1 << BSP_MCU_PIN) << 16) | ((1 << BSP_ET1100_PIN) << 16);
-    }
+    /* enable PWM control by Hercules, release Hercules reset and ET1100 reset */
+    GPIOB->BSRR |= (1 << BSP_STO_PIN) | (1 << BSP_PWM_PIN) | ((1 << BSP_MCU_PIN) << 16) | ((1 << BSP_ET1100_PIN) << 16);
+
 }
 
