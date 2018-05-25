@@ -11,7 +11,7 @@
 #include "Can.h"
 #include "Flash.h"
 #include "Usart1.h"
-
+#include "Spi.h"
 #include "BSP.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
@@ -87,6 +87,11 @@ tBSPStruct* BSP_Init(void)
 
     WatchdogCoreClockInit();
     WatchdogGPIOInit();
+    
+    gIF.pInit   = &SpiInit;
+    gIF.pRecv   = &SpiRecv;
+    gIF.pSend   = &SpiSend;
+    gIF.pReset  = &SpiReset;
 
 #else
 

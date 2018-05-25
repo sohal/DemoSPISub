@@ -406,6 +406,11 @@
               <FileType>1</FileType>
               <FilePath>.\CAN.c</FilePath>
             </File>
+            <File>
+              <FileName>Spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Spi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -903,6 +908,11 @@
               <FileName>CAN.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\CAN.c</FilePath>
+            </File>
+            <File>
+              <FileName>Spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Spi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1402,6 +1412,11 @@
               <FileType>1</FileType>
               <FilePath>.\CAN.c</FilePath>
             </File>
+            <File>
+              <FileName>Spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Spi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1577,7 +1592,7 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>fromelf --bin --output=./Objects/Release_Watchdog.bin ./Objects/Release_CAN.axf</UserProg1Name>
+            <UserProg1Name>fromelf --bin --output=./Objects/Release_Watchdog.bin ./Objects/Release_Watchdog.axf</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -1899,6 +1914,11 @@
               <FileName>CAN.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\CAN.c</FilePath>
+            </File>
+            <File>
+              <FileName>Spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Spi.c</FilePath>
             </File>
           </Files>
         </Group>
