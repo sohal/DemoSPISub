@@ -13,8 +13,8 @@
 
 #include "Usart1.h"
 
-#if defined (SELECT_TORQUE) || defined (SELECT_PILOT)
-    
+#if defined(SELECT_TORQUE) || defined(SELECT_PILOT)
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/
@@ -154,5 +154,5 @@ inline void Usart1Reset(void)
     index = 0;
 }
 
-#endif
+#endif // SELECT_TORQUE || SELECT_PILOT
 

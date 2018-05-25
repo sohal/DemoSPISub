@@ -42,22 +42,54 @@ tBSPStruct* BSP_Init(void)
     gIF.CommDoneTicks   = 10000UL;
     gIF.TwoBytesTicks   = 300UL;
 
+
+/*
+ * Init the board support package functions for the defined target.
+ */
 #if defined (SELECT_TORQUE)
-    gIF.BSP_Type = BSP_TorqueSensor;
+
     #warning Torque Sensor is selected 
+
+    gIF.BSP_Type = BSP_TorqueSensor;
+
+    gIF.pInit   = &Usart1Init;
+    gIF.pSend   = &Usart1Send;
+    gIF.pRecv   = &Usart1Recv;
+    gIF.pReset  = &Usart1Reset;
+
 #elif defined (SELECT_PILOT)
-    gIF.BSP_Type = BSP_Pilot;
+
     #warning Pilot is selected
+
+    gIF.BSP_Type = BSP_Pilot;
+
+    gIF.pInit   = &Usart1Init;
+    gIF.pSend   = &Usart1Send;
+    gIF.pRecv   = &Usart1Recv;
+    gIF.pReset  = &Usart1Reset;
+
 #elif defined (SELECT_CAN)
-    gIF.BSP_Type = BSP_CAN;
+
     #warning CAN bus selected
+
+    gIF.BSP_Type = BSP_CAN;
+
+    gIF.pInit   = &CanInit;
+    gIF.pRecv   = &CanRecv;
+    gIF.pSend   = &CanSend;
+    gIF.pReset  = &CanReset;
+
 #else
-/** 
-* The section below will may be used to determine the board type by dedicated GPIO  settings
-* in the hardware in future. When such a functionality is available, remove the #error below and
-* test the code with the correct GPIO pin/port settings. Until then, use targets in the project.
-*/
-    #error Select a valid board type
+
+    /*
+     * The code below may be used to determine the target by dedicated GPIOs of the hardware.
+     * When this is supported by the hardware:
+     * - remove the #error below
+     * - test the code with the correct GPIO pin/port settings
+     */
+
+    #error "No target (SELECT_TORQUE, SELECT_PILOT, SELECT_CAN) defined."
+    
     temp_u32 = DBGMCU->IDCODE;
     
     if((temp_u32 & DBGMCU_IDCODE_DEV_ID) != DBGMCU_ID_F03x)
@@ -97,7 +129,10 @@ tBSPStruct* BSP_Init(void)
             }
         }
     }
-#endif
+    
+    /*
+     * Init the board support package functions for the identified target.
+     */
     switch(gIF.BSP_Type)
     {
         case BSP_Pilot:
@@ -106,37 +141,55 @@ tBSPStruct* BSP_Init(void)
             gIF.pRecv   = &Usart1Recv;
             gIF.pReset  = &Usart1Reset;
             break;
-        
+
         case BSP_TorqueSensor:
             gIF.pInit   = &Usart1Init;
             gIF.pSend   = &Usart1Send;
             gIF.pRecv   = &Usart1Recv;
             gIF.pReset  = &Usart1Reset;
-            
+
             TorqueSensorCoreClockInit();
             break;
-        
+
         case BSP_ExtWatchdog:
             // TODO implement me
             break;
-        
+
         case BSP_CAN:
             gIF.pInit   = &CanInit;
             gIF.pRecv   = &CanRecv;
             gIF.pSend   = &CanSend;
             gIF.pReset  = &CanReset;
             break;
-        
+
         default:
             // TODO implement me
             break;
     }
-  
-    /* Let's update the global SystemCoreClock variable just in case the system
+    
+#endif
+
+    /*
+     * Call BSP init functions for target.
+     */
+    switch(gIF.BSP_Type)
+    {
+        case BSP_TorqueSensor:
+            TorqueSensorCoreClockInit();
+            break;
+
+        default:
+            // nothing to init
+            break;
+    }
+
+    /* 
+     * Let's update the global SystemCoreClock variable just in case the system
      * frequency has changed. Mandatory for calculations of delay for bootloader
      * timeouts that are solely dependent on system ticks
      */
     SystemCoreClockUpdate();
+    
     /* Now calculate by what factor has the system changed it's core clock */
     uint32_t temp_u32 = ( SystemCoreClock / BSP_ALLBOARD_HSI_FREQUENCY );
     
