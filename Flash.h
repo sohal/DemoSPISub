@@ -8,11 +8,12 @@
 #define FLASH_H
 
 /* ***************** Header / include files ( #include ) **********************/
+
 #include <stdint.h>
-#include "CRC.h"
-#include "Common.h"
+
 #include "BSP.h"
 #include "Packet.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 typedef struct myFlash{

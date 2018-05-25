@@ -11,13 +11,16 @@
 #define CAN_H_
 
 /* ***************** Header / include files ( #include ) **********************/
-#include "stm32f0xx.h"
-#include "Common.h"
-#include "Gpio.h"
-#include "BSP.h"
 
-#define CAN_MAX_DATA_LENGTH        (8U)  // Maximum number of bytes in CAN bus (4H + 4L)
+#include <stdint.h>
+
+#include <stm32f0xx.h>
+
+#include "BSP.h"
+#include "Common.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
+#define CAN_MAX_DATA_LENGTH        (8U)  // Maximum number of bytes in CAN bus (4H + 4L)
 /* ********************* Type definitions ( typedef ) *************************/
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/

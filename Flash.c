@@ -5,10 +5,15 @@
 *
 *******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
+
 #include <stddef.h>
+
+#include <stm32f0xx.h>
+
+#include "CRC.h"
+
 #include "Flash.h"
-#include "Gpio.h"
-#include "stm32f0xx.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/

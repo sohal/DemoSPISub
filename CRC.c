@@ -5,7 +5,11 @@
 *
 *******************************************************************************/
 /* ***************** Header / include files ( #include ) **********************/
+
+#include <stddef.h>
+
 #include "CRC.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 #define CRC16 0xAA55
 /* ********************* Type definitions ( typedef ) *************************/
