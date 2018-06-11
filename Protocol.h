@@ -19,7 +19,7 @@
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 typedef union myCmd{
-    uint8_t         bufferCMD[2];
+    uint8_t         bufferCMD[4];
     eRESPONSE_ID    returnValue;
     eCOMMAND_ID     receivedvalue;
 }tCmdUnion;

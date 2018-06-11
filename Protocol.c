@@ -10,7 +10,6 @@
 
 #include "CRC.h"
 #include "Flash.h"
-
 #include "Protocol.h"
 
 /* *************** Constant / macro definitions ( #define ) *******************/
@@ -58,19 +57,19 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                     stateNext = eFlashEraseCMD;
                     tickCounter = 0;
                     Command.returnValue = eRES_Ready;
-                    pBSP->pSend(Command.bufferCMD,2);
+                    pBSP->pSend(Command.bufferCMD, 2);
                 }
             }else
             {
-                if(tickCounter > pBSP->AppStartTicks)
-                {
-                    stateNext = eFlashVerifyApplication;
-                    tickCounter = 0;
-                }else
-                {
-                    tickCounter++;
-                    stateNext = eDefaultState;
-                }
+//                if(tickCounter > pBSP->AppStartTicks)
+//                {
+//                    stateNext = eFlashVerifyApplication;
+//                    tickCounter = 0;
+//                }else
+//                {
+//                    tickCounter++;
+//                    stateNext = eDefaultState;
+//                }
             }
             break;
 
@@ -238,7 +237,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
         if(stickyTimer > pBSP->BootTimeoutTicks)
         {
             stateNext = eDefaultState;
-            NVIC_SystemReset();
+            // sohal NVIC_SystemReset();
             stickyTimer = 0U;
         }
     }else
