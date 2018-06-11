@@ -83,9 +83,6 @@
 #define BSP_TARGET_SPI_MISO_PIN             (4U)
 #define BSP_TARGET_SPI_MOSI_PIN             (5U)
 #define BSP_TARGET_SPI_CLK_PIN              (3U)
-#define BSP_TARGET_SPI_NSS_PORT             (GPIOA)
-#define BSP_TARGET_SPI_NSS_PIN              (15U)
-
 
 #define BSP_CHECK_PORT                      (GPIOA)
 #define BSP_CHECK_PIN_6                     (6U)
