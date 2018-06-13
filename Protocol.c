@@ -7,7 +7,12 @@
 *******************************************************************************/
 
 /* ***************** Header / include files ( #include ) **********************/
+
+#include "CRC.h"
+#include "Flash.h"
+
 #include "Protocol.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
 /* *********************** Global data definitions ****************************/

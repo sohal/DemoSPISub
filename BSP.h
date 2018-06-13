@@ -7,8 +7,13 @@
 #ifndef BSP_H_
 #define BSP_H_
 /* ***************** Header / include files ( #include ) **********************/
-#include "stm32f0xx.h"
+
+#include <stdint.h>
+
+#include <stm32f0xx.h>
+
 #include "Common.h"
+
 /* *************** Constant / macro definitions ( #define ) *******************/
 
 #define BootTIMEOUT                         (300000U)
