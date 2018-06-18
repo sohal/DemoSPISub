@@ -17,5 +17,6 @@ EventRecorderStub.*
 # Temporary files generated during autosaves and such
 *.TMP
 
-# Debugger settings for Jlink
+# Debugger settings for Jlink 
+
 JLink*.*
